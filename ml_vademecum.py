@@ -1,6 +1,7 @@
 # ---
 # jupyter:
 #   jupytext:
+#     formats: ipynb,py
 #     text_representation:
 #       extension: .py
 #       format_name: light
@@ -300,6 +301,7 @@ model = KNeighborsClassifier(best_model.n_neighbors)
 model.fit(iris['data'], iris['target'])
 
 # ### Approccio holdout-cv
+# Il primo holdout è analogo a quello della sezione precedente.
 
 # +
 from sklearn.metrics import accuracy_score
@@ -307,15 +309,31 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
 
-X_training_set, X_test_set, y_training_set, y_test_set = train_test_split(
+X_trainval, X_test, y_trainval, y_test = train_test_split(
     iris['data'], 
     iris['target'], 
     test_size=0.3,  
     stratify=iris['target']
 )
-    
+# -
+
+# Utilizziamo un oggetto della classe `GridSearchCV`, il cui metodo `fit` automaticamente, oltre ad allenare il modello, svolge il tuning degli iperparametri (in questo caso cerchiamo solo $k$) tramite cross-validation.  
+# Al costruttore di `GridSearchCV` passiamo:
+# - il modello che vogliamo allenare
+# - un dizionario i cui elementi sono del tipo _'nome iperparametro': lista di possibili valori_
+# - numero di fold (`cv`)
+
+# +
 model = KNeighborsClassifier()
 parameters = {'n_neighbors': [1, 3, 5, 7, 9]}
 gs = GridSearchCV(model, parameters, cv=10)
-gs.fit(X_training_set, y_training_set)
-accuracy_score(y_test_set, gs.predict(X_test_set))
+gs.fit(X_trainval, y_trainval)
+
+# Valutazione su test set
+accuracy_score(y_test, gs.predict(X_test))
+# -
+
+# Per finire, un refit. Da notare che, di default, il primo refit (quello fatto su tutto il set _trainval_) viene automaticamente svolto dal metodo `fit` di `GridSearchCV`.
+
+model = KNeighborsClassifier(gs.best_estimator_.n_neighbors)
+model.fit(iris['data'], iris['target'])
