@@ -1,6 +1,7 @@
 # ---
 # jupyter:
 #   jupytext:
+#     formats: ipynb,py
 #     text_representation:
 #       extension: .py
 #       format_name: light
@@ -76,32 +77,32 @@
 # Sono le due metriche più diffuse nei problemi di classificazione.  
 # Il tasso d'errore indica la proporzione di istanze erroneamente classificate sul totale delle istanze.
 # $$
-# E(f;D)=\frac{1}{m}\sum_{i=1}^{m}\mathbb{I}(f(x_i)\neq y_i)
+# \operatorname{E}(f;D)=\frac{1}{m}\sum_{i=1}^{m}\mathbb{I}(f(x_i)\neq y_i)
 # $$
 #
 # L'accuratezza indica la proporzione di istanze correttamente classificate sul totale delle istanze.
 # $$
-# acc(f;D)=\frac{1}{m}\sum_{i=1}^{m}\mathbb{I}(f(x_i)=y_i)
+# \operatorname{acc}(f;D)=\frac{1}{m}\sum_{i=1}^{m}\mathbb{I}(f(x_i)=y_i)
 # $$
 # Valgono anche:
 # $$
-# acc(f;D)=1-E(f;D)
+# \operatorname{acc}(f;D)=1-\operatorname{E}(f;D)
 # $$
 # $$
-# E(f;D)=1-acc(f;D)
+# \operatorname{E}(f;D)=1-\operatorname{acc}(f;D)
 # $$
 #
 # #### Precisione (_precision_) e richiamo (_recall_)
 # Nel sottocaso dei problemi di classificazione binaria, si tratta di due metriche molto comuni e più informative rispetto a tasso d'errore o accuratezza.  
 # La precisione indica, in rapporto, quanti dei campioni previsti come positivi sono effettivamente positivi.
 # $$
-# \frac{Vero\, positivi\, (TP)}{Vero\, positivi\, (TP) + Falsi\, positivi\, (FP)}
+# \frac{\text{Veri positivi (TP)}}{\text{Veri positivi (TP)} + \text{Falsi positivi (FP)}}
 # $$
 # La si può vedere come una misura dell'accuratezza delle previsioni positive.
 #
 # Il richiamo indica la proporzione di esempi positivi reali che sono stati correttamente identificati dal modello.
 # $$
-# \frac{Vero\, positivi\, (TP)}{Vero\, positivi\, (TP) + Falsi\, negativi\, (FN)}
+# \frac{\text{Veri positivi (TP)}}{\text{Veri positivi (TP)} + \text{Falsi negativi (FN)}}
 # $$
 # Lo si può vedere come una misura della capacità del modello di trovare tutti i positivi.  
 #
