@@ -1,6 +1,7 @@
 # ---
 # jupyter:
 #   jupytext:
+#     formats: ipynb,py
 #     text_representation:
 #       extension: .py
 #       format_name: light
@@ -267,26 +268,30 @@ X_train, X_val, y_train, y_val = train_test_split(
     stratify=y_trainval
 )
 
-# Ora diamo il via ad una classica ricerca del massimo. Inizializziamo il modello KNN con $k=1$, lo alleniamo e ne calcoliamo l'accuratezza sul validation set. Dopodiché, ripetiamo per diversi valori di $k$, cercando quello che massimizza l'accuratezza.  
-# Al termine del ciclo, la variabile best_model conterrà il modello avente il $k$ ottimale.  
+# Ora diamo il via ad una classica ricerca del massimo. Ad ogni iterazione, inizializziamo un modello con un $k$ diverso (nel range specificato), lo alleniamo sul train set e ne calcoliamo l'accuratezza sul validation set. Se questa è più grande della migliore corrente, aggiorniamo il modello migliore e la sua accuratezza.
+# Al termine del ciclo, la variabile `best_model` conterrà il modello avente il $k$ ottimale.  
 
 # +
-best_model = KNeighborsClassifier(n_neighbors=1)
-best_model.fit(X_train_set, y_train_set)
-accuracy = accuracy_score(y_validation_set, best_model.predict(X_validation_set))
+best_model = None
+best_accuracy = 0
         
-for k in range(3, 10, 2):
+for k in range(1, 10, 2):
     model = KNeighborsClassifier(n_neighbors=k)
-    model.fit(X_train_set, y_train_set)
-    accuracy_temp = accuracy_score(y_validation_set, model.predict(X_validation_set))
-    if(accuracy_temp > accuracy):
+    model.fit(X_train, y_train)
+    accuracy = accuracy_score(y_val, model.predict(X_val))
+    if(accuracy > best_accuracy):
         best_model = model
-        accuracy = accuracy_temp
+        best_accuracy = accuracy
 # -
 
 # Calcoliamo infine l'accuratezza del modello migliore sul test set.
 
-accuracy_score(y_test_set, best_model.predict(X_test_set))
+accuracy_score(y_test, best_model.predict(X_test))
+
+# Come già discusso, è solito fare un cosiddetto _**refit**_, ossia un altro "giro" di addestramento sull'intero dataset. Chiaramente addestriamo un modello avente il $k$ ottimale.
+
+model = KNeighborsClassifier(best_model.n_neighbors)
+model.fit(iris['data'], iris['target'])
 
 # ### Approccio holdout-cv
 
