@@ -1,7 +1,6 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: ipynb,py
 #     text_representation:
 #       extension: .py
 #       format_name: light
@@ -237,21 +236,21 @@ iris['feature_names']
 
 # Modifichiamo il dataset perché il target sia di tipo binario. Dobbiamo distinguere solo tra Setosa e non.
 
-iris['target'] = np.where(iris['target'] == 2, 1, iris['target'])
+iris['target'][iris['target'] == 2] = 1
 iris['target_names'] = np.array(['setosa', 'versicolor/virginica'])
 iris['target']
 
 # Ora che il dataset è pronto, passiamo alla fase di training. Vogliamo anche fare il tuning dell'iperparametro $k$. Come già discusso, possiamo adottare diversi metodi per suddividere il dataset negli insiemi necessari. Di seguito, vediamo sia un approccio holdout-holdout, che un approccio holdout-cv.
 
 # ### Approccio holdout-holdout
-# Eseguiamo il primo holdout per ottenere train set e test set, utilizzando il metodo train_test_split di scikit-learn. Attraverso il parametro test_size, impostiamo la percentuale di esempi da includere nel test set (e quindi quella da includere nel train set).
+# Eseguiamo il primo holdout per ottenere train set e test set, utilizzando il metodo `train_test_split` di scikit-learn. Attraverso il parametro `test_size`, impostiamo la percentuale di esempi da includere nel test set (e quindi quella da includere nel train set).
 
 # +
 from sklearn.metrics import accuracy_score
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
 
-X_training_set, X_test_set, y_training_set, y_test_set = train_test_split(
+X_trainval, X_test, y_trainval, y_test = train_test_split(
     iris['data'], 
     iris['target'], 
     test_size=0.3,  
@@ -259,13 +258,13 @@ X_training_set, X_test_set, y_training_set, y_test_set = train_test_split(
 )
 # -
 
-# Ripetiamo l'holdout per ottenere, a partire dal train set appena ricavato, un train set ridotto e un validation set.
+# Ripetiamo l'holdout per ottenere, a partire dal train set appena ricavato, un train set ridotto e un validation set.  Questa volta impostiamo `test_size` a 0.43, per far sì che train set e validation set abbiano (circa) la stessa dimensione.
 
-X_train_set, X_validation_set, y_train_set, y_validation_set = train_test_split(
-    X_training_set,
-    y_training_set,
-    test_size=0.3,
-    stratify=y_training_set
+X_train, X_val, y_train, y_val = train_test_split(
+    X_trainval,
+    y_trainval,
+    test_size=0.43,
+    stratify=y_trainval
 )
 
 # Ora diamo il via ad una classica ricerca del massimo. Inizializziamo il modello KNN con $k=1$, lo alleniamo e ne calcoliamo l'accuratezza sul validation set. Dopodiché, ripetiamo per diversi valori di $k$, cercando quello che massimizza l'accuratezza.  
