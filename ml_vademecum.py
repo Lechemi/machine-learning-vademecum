@@ -1,7 +1,6 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: ipynb,py
 #     text_representation:
 #       extension: .py
 #       format_name: light
@@ -284,11 +283,18 @@ for k in range(1, 10, 2):
         best_accuracy = accuracy
 # -
 
-# Calcoliamo infine l'accuratezza del modello migliore sul test set.
+# Come già discusso, è solito fare un cosiddetto _**refit**_, ossia un altro "giro" di addestramento utilizzando anche i dati con cui si è appena valutato il modello (in questo caso, il validation set). Chiaramente addestriamo un modello avente il $k$ ottimale, ossia quello di `best_model`.  
+# Valutiamo poi tale modello sul test set.
 
+# +
+model = KNeighborsClassifier(best_model.n_neighbors)
+model.fit(X_trainval, y_trainval)
+
+# Valutazione finale su test set
 accuracy_score(y_test, best_model.predict(X_test))
+# -
 
-# Come già discusso, è solito fare un cosiddetto _**refit**_, ossia un altro "giro" di addestramento sull'intero dataset. Chiaramente addestriamo un modello avente il $k$ ottimale.
+# Eseguiamo un ultimo refit, questa volta sull'intero dataset.
 
 model = KNeighborsClassifier(best_model.n_neighbors)
 model.fit(iris['data'], iris['target'])
