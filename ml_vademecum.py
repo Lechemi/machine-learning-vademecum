@@ -227,6 +227,8 @@
 # +
 import numpy as np
 from sklearn import datasets
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 iris = datasets.load_iris()
 # -
@@ -336,4 +338,27 @@ accuracy_score(y_test, gs.predict(X_test))
 # Per finire, un refit. Da notare che, di default, il primo refit (quello fatto su tutto il set _trainval_) viene automaticamente svolto dal metodo `fit` di `GridSearchCV`.
 
 model = KNeighborsClassifier(gs.best_estimator_.n_neighbors)
+model.fit(iris['data'], iris['target'])
+
+# ### Approcio cv-cv
+#
+# Andremo ad utilizzare `cross_val_score`, che dividerà il dataset in n fold deciso da noi, dove n-1 saranno utilizzate dallo stimatore che gli passiamo come parametro, in questo esempio `gs`, mentre una sarà usata per il test.
+#
+# Quindi ad ogni iterazione verrà usato `gs` come iterazione interna che farà le stesse cose che sono state citate nell'esempio precedente.
+#
+# `cross_val_score` restituisce un array, contenente la stima dell'accuratezza di ogni iterazione, facciamo la media per ottenere una stima finale.
+
+# +
+from sklearn.model_selection import GridSearchCV
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import cross_val_score
+
+model = KNeighborsClassifier()
+parameters = {'n_neighbors': [1, 3, 5, 7, 9]}
+gs = GridSearchCV(model, parameters, cv=10)
+np.mean(cross_val_score(gs, iris['data'], iris['target'], cv=10))
+# -
+# Eseguiamo un `fit` su tutto il dataset, per ottenere il miglior iperparametro e poter ottenere il modello finale
+
+model = KNeighborsClassifier(gs.fit(iris['data'], iris['target']).best_estimator_.n_neighbors)
 model.fit(iris['data'], iris['target'])
