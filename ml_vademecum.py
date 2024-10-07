@@ -197,7 +197,7 @@
 # ### Cross-validation
 #
 # La metodologia cross-validation prevede di suddividere $ D $ in $ k $ sottoinsiemi di cardinalità uguale o simile, tali che $ D = \bigcup_{i=1}^{k} D_i $ e $ \forall i, j \in \{1, \dots, k\}, D_i \cap D_j = \emptyset $, con $ i \neq j $. In altre parole, i $k$ sottoinsiemi costituiscono una partizione di $D$.  
-# Vengono svolte $ k $ iterazioni; a ogni iterazione, un singolo insieme $ D_i $ non ancora utilizzato come test set, viene scelto come tale, mentre il training set viene composto dall'unione di tutti gli altri sottoinsiemi. A questo punto, possiamo ottenere la valutazione del modello.  
+# Vengono svolte $ k $ iterazioni; a ogni iterazione, un singolo insieme $ D_i $ non ancora utilizzato come test set, viene scelto come tale, mentre il training set viene composto dall'unione di tutti gli altri sottoinsiemi.  
 # <div style="text-align: center;">
 #     <img src="images/crossvalidation.png" alt="Descrizione" width="500" height="500">
 # </div>
@@ -328,7 +328,7 @@ X_trainval, X_test, y_trainval, y_test = train_test_split(
 # +
 model = KNeighborsClassifier()
 parameters = {'n_neighbors': [1, 3, 5, 7, 9]}
-gs = GridSearchCV(model, parameters, cv=10)
+gs = GridSearchCV(model, parameters, cv=5)
 gs.fit(X_trainval, y_trainval)
 
 # Valutazione su test set
@@ -342,11 +342,13 @@ model.fit(iris['data'], iris['target'])
 
 # ### Approcio cv-cv
 #
-# Andremo ad utilizzare `cross_val_score`, che dividerà il dataset in n fold deciso da noi, dove n-1 saranno utilizzate dallo stimatore che gli passiamo come parametro, in questo esempio `gs`, mentre una sarà usata per il test.
+# Utilizziamo il metodo `cross_val_score`, che restituisce un array di valutazioni (`cv_scores`); una per ciascuna iterazione di cross-validation. Passiamo come parametri:
+# - il modello da allenare e valutare ad ogni iterazione. Da notare che forniamo un oggetto `GridSearchCV`, il cui metodo `fit` svolge il tuning degli iperparametri tramite cross-validation (vedi paragrafo precedente)
+# - il dataset, composto da osservazioni ed etichette
+# - il numero di *fold* (parametro `cv`), che quindi è anche il numero di valutazioni che verranno inserite nell'array restituito
 #
-# Quindi ad ogni iterazione verrà usato `gs` come iterazione interna che farà le stesse cose che sono state citate nell'esempio precedente.
-#
-# `cross_val_score` restituisce un array, contenente la stima dell'accuratezza di ogni iterazione, facciamo la media per ottenere una stima finale.
+# La cross-validation interna è quindi svolta dal metodo `fit` di `GridSearchCV`, mentre quella esterna da `cross_val_score`.  
+# Per ottenere una stima finale, calcoliamo la media delle valutazioni restituite da `cross_val_score`.
 
 # +
 from sklearn.model_selection import GridSearchCV
@@ -355,10 +357,11 @@ from sklearn.model_selection import cross_val_score
 
 model = KNeighborsClassifier()
 parameters = {'n_neighbors': [1, 3, 5, 7, 9]}
-gs = GridSearchCV(model, parameters, cv=10)
-np.mean(cross_val_score(gs, iris['data'], iris['target'], cv=10))
+gs = GridSearchCV(model, parameters, cv=5)
+cv_scores = cross_val_score(gs, iris['data'], iris['target'], cv=5)
+np.mean(cv_scores)
 # -
-# Eseguiamo un `fit` su tutto il dataset, per ottenere il miglior iperparametro e poter ottenere il modello finale
+# Come al solito, eseguiamo un refit sull'intero dataset.  
+# Da notare che, se non viene specificato altrimenti nel costruttore di `GridSearchCV`, il metodo `fit`, dopo aver trovato il miglior iperparametro, esegue un refit su tutto il dataset passatogli in input.
 
-model = KNeighborsClassifier(gs.fit(iris['data'], iris['target']).best_estimator_.n_neighbors)
-model.fit(iris['data'], iris['target'])
+gs.fit(iris['data'], iris['target'])
