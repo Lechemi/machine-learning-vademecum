@@ -351,8 +351,6 @@ model.fit(iris['data'], iris['target'])
 # Per ottenere una stima finale, calcoliamo la media delle valutazioni restituite da `cross_val_score`.
 
 # +
-from sklearn.model_selection import GridSearchCV
-from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import cross_val_score
 
 model = KNeighborsClassifier()
@@ -361,7 +359,127 @@ gs = GridSearchCV(model, parameters, cv=5)
 cv_scores = cross_val_score(gs, iris['data'], iris['target'], cv=5)
 np.mean(cv_scores)
 # -
-# Come al solito, eseguiamo un refit sull'intero dataset.  
-# Da notare che, se non viene specificato altrimenti nel costruttore di `GridSearchCV`, il metodo `fit`, dopo aver trovato il miglior iperparametro, esegue un refit su tutto il dataset passatogli in input.
+# Come al solito, eseguiamo un refit sull'intero dataset per ottenere il modello finale.  
+# NB: se non viene specificato altrimenti nel costruttore di `GridSearchCV`, il metodo `fit`, dopo aver trovato il miglior iperparametro, esegue un refit su tutto il dataset passatogli in input.
 
+# +
 gs.fit(iris['data'], iris['target'])
+
+# Modello finale
+gs.best_estimator_
+# -
+
+# ### Approcio generalizzato
+#
+# L'idea è arrivare ad una funzione generalizzata, in grado di svolgere training e testing di un modello, con anche tuning degli iperparametri, secondo diverse metodologie.
+#
+# Definiamo prima alcune funzioni ausiliarie. La prima è `make_hp_configurations`, che prende in input una griglia di iperparametri (come quella vista per `GridSearchCV`) e restituisce una lista contenente tutte le possibili combinazioni dei valori degli stessi.
+
+# +
+import itertools as it
+
+def make_hp_configurations(grid):
+    return [{n: v for n, v in zip(grid. keys(), t)} for t in it.product(*grid.values())]
+
+
+# -
+
+# Ecco un esempio del suo utilizzo. Le liste contengono i possibili valori rispettivamente per `hp_1` e per `hp_2`.
+
+make_hp_configurations({'hp_1':[1,2,3], 'hp_2':['a','b','c']})
+
+
+# La seconda funzione ausiliaria è `fit_estimator`, che riceve un modello, una configurazione per i suoi iperparametri, ed esegue il training sul dataset specificato.
+
+def fit_estimator(X, y, estimator, hp_conf):
+    estimator.set_params(**hp_conf)
+    estimator.fit(X, y)
+
+
+# La funzione `get_score` riceve un modello e una funzione che calcola una specifica metrica, e restituisce il valore calcolato per la stessa sul dataset specificato.  
+# Per le metriche utilizziamo il modulo `metrics` di scikit-learn.
+
+# +
+import sklearn.metrics as metrics
+
+def get_score(X, y, estimator, scorer): 
+    return scorer(y_test, estimator.predict(X_test))
+
+
+# -
+
+# La funzione `check_best` riceve il valore di due metriche: la prima rappresenta quella appena calcolata e la seconda quella migliore trovata. Viene restituito `True` se `score` è meglio di `best_score`, dove "meglio" dipende dal booleano minimize, impostato a `True` se la metrica è da minimizzare e a `False` altrimenti.
+
+def check_best(minimize, score, best_score):
+    return (minimize and score < best_score) or (not minimize and score > best_score)
+
+
+# #### Funzione `learn`
+# Questa funzione è generalizzata rispetto a dataset, modello, metodologia con cui si suddivide il dataset per la valutazione (cv, holdout,...) e metriche di valutazione, sia sul test set che sul validation set.  
+# Di default, la metrica di valutazione è la radice dell'errore quadratico medio, sia per testing che per validation.
+#
+# Di particolare importanza sono i parametri `outer_split_method` e `inner_split_method`.
+
+def learn(X, y, estimator, param_grid, outer_split_method, inner_split_method,
+            val_scorer=metrics.root_mean_squared_error, minimize_val_scorer=True, 
+            test_scorer=metrics.root_mean_squared_error, minimize_test_scorer=True):
+
+    outer_scores = []
+
+    best_score = np.inf if minimize_val_scorer else -np.inf
+    best_conf = None
+
+    for _, (trainval_index, test_index) in enumerate(outer_split_method.split(X, y)):
+        
+        X_trainval, X_test = X[trainval_index], X[test_index]
+        y_trainval, y_test = y[trainval_index], y[test_index]
+        
+        best_inner_score = np.inf if minimize_test_scorer else -np.inf
+        best_inner_conf = None
+        
+        for hp_conf in make_hp_configurations(param_grid):
+            conf_scores = []
+            
+            for _, (train_index, val_index) in enumerate(inner_split_method.split(X_trainval, y_trainval)):
+                
+                X_train, X_val = X_trainval[train_index], X_trainval[val_index]
+                y_train, y_val = y_trainval[train_index], y_trainval[val_index]
+
+                fit_estimator(X_train, y_train, estimator, hp_conf)
+                conf_scores.append(get_score(X_val, y_val, estimator, val_scorer))
+
+            # Ottengo lo score di questo modello alla fine della valutazione interna
+            conf_score = np.mean(conf_scores)
+
+            if check_best(minimize_val_scorer, conf_score, best_inner_score):
+                best_inner_score, best_inner_conf = conf_score, hp_conf
+
+        # Ora best_inner_conf contiene la configurazione che ha vinto il girone e best_inner_score il suo score
+        # Fitto su trainval un modello avente tale configurazione
+        fit_estimator(X_trainval, y_trainval, estimator, best_inner_conf)
+        outer_score = get_score(X_test, y_test, estimator, test_scorer)
+        outer_scores.append(outer_score)
+
+        if check_best(minimize_test_scorer, outer_score, best_score):
+            best_score, best_conf = outer_score, best_inner_conf
+
+    fit_estimator(X, y, estimator, best_conf)
+    return estimator, np.mean(outer_scores)
+
+
+# +
+from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import StratifiedShuffleSplit
+
+X = iris['data']
+y = iris['target']
+folds = 5
+skf = StratifiedKFold(n_splits=folds, shuffle=True, random_state=42)
+sss = StratifiedShuffleSplit(n_splits=5, test_size=1/(folds-1), random_state=42)
+hp_grid = {'n_neighbors': [1, 3, 5, 7, 9]}
+model = KNeighborsClassifier()
+# -
+
+learn(X, y, model, hp_grid, skf, sss, 
+    val_scorer=metrics.accuracy_score, minimize_val_scorer=False,
+    test_scorer=metrics.accuracy_score, minimize_test_scorer=False)
