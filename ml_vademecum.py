@@ -397,7 +397,8 @@ def fit_estimator(X, y, estimator, hp_conf):
 
 
 # La funzione `get_score` riceve un modello e una funzione che calcola una specifica metrica, e restituisce il valore calcolato per la stessa sul dataset specificato.  
-# Per le metriche utilizziamo il modulo `metrics` di scikit-learn.
+# NB: le funzioni sono _cittadine di prima classe_ in python, ecco perché possiamo utilizzarne una come parametro in questo modo.  
+# Per le metriche utilizziamo il modulo `metrics` di scikit-learn, che fornisce una serie di funzioni apposite.
 
 # +
 import sklearn.metrics as metrics
@@ -415,10 +416,13 @@ def check_best(minimize, score, best_score):
 
 
 # #### Funzione `learn`
-# Questa funzione è generalizzata rispetto a dataset, modello, metodologia con cui si suddivide il dataset per la valutazione (cv, holdout,...) e metriche di valutazione, sia sul test set che sul validation set.  
-# Di default, la metrica di valutazione è la radice dell'errore quadratico medio, sia per testing che per validation.
-#
-# Di particolare importanza sono i parametri `outer_split_method` e `inner_split_method`.
+# Questa funzione è generalizzata rispetto a dataset, modello, relativi iperparametri da modulare, metodologia con cui si suddivide il dataset per la valutazione (cv, holdout,...) e metriche di valutazione, sia sul test set che sul validation set.  
+# Di fatto, i parametri sono:
+# - osservazioni (`X`) ed etichette (`y`) del dataset
+# - modello (`estimator`)
+# - griglia degli iperparametri (`param_grid`)
+# - metodologie di suddivisione del dataset per la valutazione (`outer_split_method` e `inner_split_method`; spiegazioni approfondite seguono la funzione)
+# - metriche di valutazione (`val_scorer`, `test_scorer`) e relativa indicazione sulla massimizzazione o minimizzazione (`minimize_val_scorer`, `minimize_test_scorer`); di default, la metrica di valutazione è la radice dell'errore quadratico medio (che va quindi minimizzato), sia per testing che per validation.
 
 def learn(X, y, estimator, param_grid, outer_split_method, inner_split_method,
             val_scorer=metrics.root_mean_squared_error, minimize_val_scorer=True, 
@@ -448,14 +452,11 @@ def learn(X, y, estimator, param_grid, outer_split_method, inner_split_method,
                 fit_estimator(X_train, y_train, estimator, hp_conf)
                 conf_scores.append(get_score(X_val, y_val, estimator, val_scorer))
 
-            # Ottengo lo score di questo modello alla fine della valutazione interna
             conf_score = np.mean(conf_scores)
 
             if check_best(minimize_val_scorer, conf_score, best_inner_score):
                 best_inner_score, best_inner_conf = conf_score, hp_conf
 
-        # Ora best_inner_conf contiene la configurazione che ha vinto il girone e best_inner_score il suo score
-        # Fitto su trainval un modello avente tale configurazione
         fit_estimator(X_trainval, y_trainval, estimator, best_inner_conf)
         outer_score = get_score(X_test, y_test, estimator, test_scorer)
         outer_scores.append(outer_score)
@@ -467,18 +468,24 @@ def learn(X, y, estimator, param_grid, outer_split_method, inner_split_method,
     return estimator, np.mean(outer_scores)
 
 
+# Di particolare importanza sono i parametri `outer_split_method` e `inner_split_method`. Al loro contenuto è richiesto un metodo *generatore* `split(X, y)`, che utilizziamo per ottenere una partizione del dataset (il quale è sottoforma di `X` e `y`) composta da due insiemi.
+# Essendo `split` un generatore, **restituisce ogni volta una coppia diversa di insiemi di indici** per il dataset specificato: uno per gli elementi del primo insieme ed uno per quelli del secondo. Dunque,  utilizzando la funzione `enumerate()`, possiamo iterare sulle coppie generate da `split` per realizzare, ad esempio, una cross-validation.
+#
+# Noi passeremo come valori per `outer_split_method` e `inner_split_method` degli oggetti appartenenti a classi come `StratifiedKFold` oppure `StratifiedShuffleSplit`, i cui metodi `split` permettono di ottenere rispettivamente una divisione secondo cross-validation e una divisione secondo holdout ripetuto.
+
 # +
 from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import StratifiedShuffleSplit
 
-X = iris['data']
-y = iris['target']
 folds = 5
 skf = StratifiedKFold(n_splits=folds, shuffle=True, random_state=42)
 sss = StratifiedShuffleSplit(n_splits=5, test_size=1/(folds-1), random_state=42)
+# -
+
+X = iris['data']
+y = iris['target']
 hp_grid = {'n_neighbors': [1, 3, 5, 7, 9]}
 model = KNeighborsClassifier()
-# -
 
 learn(X, y, model, hp_grid, skf, sss, 
     val_scorer=metrics.accuracy_score, minimize_val_scorer=False,
