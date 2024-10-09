@@ -434,6 +434,7 @@ def learn(X, y, estimator, param_grid, outer_split_method, inner_split_method,
     best_conf = None
 
     for _, (trainval_index, test_index) in enumerate(outer_split_method.split(X, y)):
+        # Ad ogni iterazione corrisponde una suddivisione diversa in trainval e test
         
         X_trainval, X_test = X[trainval_index], X[test_index]
         y_trainval, y_test = y[trainval_index], y[test_index]
@@ -442,9 +443,11 @@ def learn(X, y, estimator, param_grid, outer_split_method, inner_split_method,
         best_inner_conf = None
         
         for hp_conf in make_hp_configurations(param_grid):
+            # Ad ogni iterazione corrisponde una configurazione diversa degli iperparametri 
             conf_scores = []
             
             for _, (train_index, val_index) in enumerate(inner_split_method.split(X_trainval, y_trainval)):
+                # Ad ogni iterazione corrisponde una suddivisione diversa in train e val
                 
                 X_train, X_val = X_trainval[train_index], X_trainval[val_index]
                 y_train, y_val = y_trainval[train_index], y_trainval[val_index]
@@ -469,9 +472,10 @@ def learn(X, y, estimator, param_grid, outer_split_method, inner_split_method,
 
 
 # Di particolare importanza sono i parametri `outer_split_method` e `inner_split_method`. Al loro contenuto è richiesto un metodo *generatore* `split(X, y)`, che utilizziamo per ottenere una partizione del dataset (il quale è sottoforma di `X` e `y`) composta da due insiemi.
-# Essendo `split` un generatore, **restituisce ogni volta una coppia diversa di insiemi di indici** per il dataset specificato: uno per gli elementi del primo insieme ed uno per quelli del secondo. Dunque,  utilizzando la funzione `enumerate()`, possiamo iterare sulle coppie generate da `split` per realizzare, ad esempio, una cross-validation.
+# Essendo `split` un generatore, **restituisce ogni volta una coppia diversa di insiemi di indici** per il dataset specificato: uno per gli elementi del primo insieme ed uno per quelli del secondo. Dunque,  utilizzando la funzione `enumerate()`, possiamo iterare sulle coppie generate da `split` per realizzare, ad esempio, una cross-validation.  
+# Noi passeremo come valori per `outer_split_method` e `inner_split_method` degli oggetti appartenenti a classi come `StratifiedKFold` oppure `StratifiedShuffleSplit`, i cui metodi `split` permettono di ottenere rispettivamente una divisione secondo cross-validation e una divisione secondo holdout ripetuto. Esempi semplici (ma chiari) del funzionamento di `split` in entrambi i casi si trovano sulla documentazione.
 #
-# Noi passeremo come valori per `outer_split_method` e `inner_split_method` degli oggetti appartenenti a classi come `StratifiedKFold` oppure `StratifiedShuffleSplit`, i cui metodi `split` permettono di ottenere rispettivamente una divisione secondo cross-validation e una divisione secondo holdout ripetuto.
+# Ecco un semplice esempio di utilizzo di `learn`, sempre sul problema relativo al dataset iris. Vogliamo allenare e valutare un modello KNN, trovando anche l'iperparametro migliore. Scegliamo di utilizzare un approccio cv-holdoutRipetuto, sfruttando le classi sopra menzionate.  
 
 # +
 from sklearn.model_selection import StratifiedKFold
@@ -480,8 +484,6 @@ from sklearn.model_selection import StratifiedShuffleSplit
 folds = 5
 skf = StratifiedKFold(n_splits=folds, shuffle=True, random_state=42)
 sss = StratifiedShuffleSplit(n_splits=5, test_size=1/(folds-1), random_state=42)
-# -
-
 X = iris['data']
 y = iris['target']
 hp_grid = {'n_neighbors': [1, 3, 5, 7, 9]}
@@ -490,3 +492,8 @@ model = KNeighborsClassifier()
 learn(X, y, model, hp_grid, skf, sss, 
     val_scorer=metrics.accuracy_score, minimize_val_scorer=False,
     test_scorer=metrics.accuracy_score, minimize_test_scorer=False)
+# -
+
+# Il parametro `test_size` del costruttore di `StratifiedShuffleSplit` è impostato in modo tale da avere sempre test set e validation set della stessa dimensione (circa).  
+# Il parametro `random_state` serve per rendere i risultati riproducibili.  
+# Da notare anche che scegliamo di utilizzare l'accuratezza come metrica di valutazione.
