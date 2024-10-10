@@ -379,6 +379,29 @@ gs.best_estimator_
 import itertools as it
 
 def make_hp_configurations(grid):
+    """
+    Genera tutte le combinazioni possibili di iperparametri basate su grid.
+    
+    Parameters
+    ----------
+    grid : dict
+        dizionario dove le chiavi sono i nomi degli iperparametri, mentre i valori di ognuna delle chiavi sono
+        delle liste, che contengono i possibili valori dell'iperparametro.
+    
+    Returns
+    -------
+    list of dict
+        ogni elemento rappresenta una combinazione unica di iperparametri.
+    
+    Examples
+    --------
+    >>> grid = {'n_neighbors': [1, 3], 'metric': ["nan_euclidean", "manhattan"]}
+    >>> make_hp_configurations(grid)
+    [{'n_neighbors': 1, 'metric': "nan_euclidean"},
+     {'n_neighbors': 1, 'metric': "manhattan"},
+     {'n_neighbors': 3, 'metric': "nan_euclidean"},
+     {'n_neighbors': 3, 'metric': "manhattan"}]
+    """
     return [{n: v for n, v in zip(grid. keys(), t)} for t in it.product(*grid.values())]
 
 
@@ -392,6 +415,21 @@ make_hp_configurations({'hp_1':[1,2,3], 'hp_2':['a','b','c']})
 # La seconda funzione ausiliaria è `fit_estimator`, che riceve un modello, una configurazione per i suoi iperparametri, ed esegue il training sul dataset specificato.
 
 def fit_estimator(X, y, estimator, hp_conf):
+    """
+    Imposta gli iperparametri per un estimator e lo allena sui dati forniti.
+    
+    Parameters
+    ----------
+    X : array-like
+        Dati per l'addestramento del modello.
+    y : array-like
+        Etichette corrispondenti ai dati.
+    estimator : estimator object
+        Modello di machine learning che implementa le funzioni set_params() e fit().
+    hp_conf : dict
+        Iperparametri, le chiavi rapresentano il nome dell'iperparametro, il volore invece il valore 
+        dell'iperparametro.
+    """
     estimator.set_params(**hp_conf)
     estimator.fit(X, y)
 
@@ -403,7 +441,28 @@ def fit_estimator(X, y, estimator, hp_conf):
 # +
 import sklearn.metrics as metrics
 
-def get_score(X, y, estimator, scorer): 
+def get_score(X_test, y_test, estimator, scorer): 
+    """
+    Calcola il punteggio del modello predittivo usando un metodo di scoring specificato.
+    
+    Parameters
+    ----------
+    X_test : array-like
+        Dati di test per fare previsioni.
+    y_test : array-like
+        Etichette dei dati ti test.
+    estimator : estimator object
+        Modello di machine learning che implementa la funzione predict().
+    scorer : callable
+        Una funzione di scoring che prende due parametri (i valori reali e quelli predetti)
+        e restituisce un punteggio.
+    
+    Returns
+    -------
+    float
+        Il punteggio calcolato in base alle previsioni fatte dal modello sui dati di test e
+        valutato con la funzione di scoring.
+    """
     return scorer(y_test, estimator.predict(X_test))
 
 
@@ -412,6 +471,34 @@ def get_score(X, y, estimator, scorer):
 # La funzione `check_best` riceve il valore di due metriche: la prima rappresenta quella appena calcolata e la seconda quella migliore trovata. Viene restituito `True` se `score` è meglio di `best_score`, dove "meglio" dipende dal booleano minimize, impostato a `True` se la metrica è da minimizzare e a `False` altrimenti.
 
 def check_best(minimize, score, best_score):
+    """
+    Verifica se il punteggio corrente è migliore rispetto al miglior punteggio finora, 
+    in base alla strategia di minimizzazione o massimizzazione.
+    
+    Parameters
+    ----------
+    minimize : bool
+        Indica se la strategia di ottimizzazione è di minimizzazione (`True`) o di massimizzazione (`False`).
+    score : float
+        Il punteggio corrente che si vuole confrontare con il miglior punteggio.
+    best_score : float
+        Il miglior punteggio trovato finora.
+    
+    Returns
+    -------
+    bool
+        Restituisce `True` se il punteggio corrente è migliore del miglior punteggio in base alla strategia 
+        di ottimizzazione, altrimenti, restituisce `False`.
+    
+    Examples
+    --------
+    >>> check_best(True, 0.2, 0.5)
+    True
+    >>> check_best(False, 0.7, 0.5)
+    True
+    >>> check_best(True, 0.6, 0.5)
+    False
+    """
     return (minimize and score < best_score) or (not minimize and score > best_score)
 
 
@@ -427,6 +514,44 @@ def check_best(minimize, score, best_score):
 def learn(X, y, estimator, param_grid, outer_split_method, inner_split_method,
             val_scorer=metrics.root_mean_squared_error, minimize_val_scorer=True, 
             test_scorer=metrics.root_mean_squared_error, minimize_test_scorer=True):
+    """
+    Addestra un modello predittivo e ottimizza i suoi iperparametri usando una procedura generica 
+    di divisione dei dati (es: cross-validation, hold-out).
+    
+    Parameters
+    ----------
+    X : array-like
+        Dati di input.
+    y : array-like
+        Etichette dei dati di input
+    estimator : estimator object
+        Un modello predittivo che implementa i metodi `fit()`, set_params() ed `predict()` 
+    param_grid : dict
+        Un dizionario che mappa i nomi degli iperparametri a una lista di valori possibili.
+    outer_split_method : splitter object
+        Un oggetto che genera la suddivisione esterna dei dati in sottoinsiemi di train/val e test.
+    inner_split_method : splitter object
+        Un oggetto che genera la suddivisione interna dei dati in train e validation.
+    val_scorer : callable, optional, default=metrics.root_mean_squared_error
+        Funzione di scoring per valutare le prestazioni del modello sui dati di validazione interna.
+    minimize_val_scorer : bool, optional, default=True
+        Se `True`, la funzione cerca di minimizzare il punteggio calcolato dal `val_scorer`. 
+        Se `False`, cerca di massimizzarlo.
+    test_scorer : callable, optional, default=metrics.root_mean_squared_error
+        Funzione di scoring per valutare le prestazioni del modello sui dati di test.
+    minimize_test_scorer : bool, optional, default=True
+        Se `True`, la funzione cerca di minimizzare il punteggio calcolato dal `test_scorer`. 
+        Se `False`, cerca di massimizzarlo.
+    
+    
+    Returns
+    -------
+    estimator : estimator object
+        Il modello addestrato sui dati completi con la configurazione di iperparametri ottimale.
+    outer_score : float
+        Il punteggio medio calcolato sugli split esterni usando la funzione `test_scorer`.
+    
+    """
 
     outer_scores = []
 
