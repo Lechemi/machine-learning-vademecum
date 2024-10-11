@@ -380,12 +380,12 @@ import itertools as it
 
 def make_hp_configurations(grid):
     """
-    Genera tutte le combinazioni possibili di iperparametri basate su grid.
+    Genera tutte le combinazioni possibili di iperparametri basate su `grid`.
     
     Parameters
     ----------
     grid : dict
-        Griglia degli iperparametri. Ogni elemento è del tipo 'nome_iperparametro' : [lista_possibili_valori].
+        Griglia degli iperparametri. Ogni coppia k-v è del tipo `nome_iperparametro : lista_possibili_valori`.
     
     Returns
     -------
@@ -410,19 +410,35 @@ def make_hp_configurations(grid):
 
 def fit_estimator(X, y, estimator, hp_conf):
     """
-    Imposta gli iperparametri per un estimator e lo allena sui dati forniti.
-    
-    Parameters
+    Configura e addestra un modello di machine learning con gli iperparametri forniti.
+
+    Parameters:
     ----------
     X : array-like
-        Dati per l'addestramento del modello.
+        Osservazioni del dataset.
+        
     y : array-like
-        Etichette corrispondenti ai dati.
-    estimator : estimator object
-        Modello di machine learning che implementa le funzioni set_params() e fit().
+        Etichette del dataset.
+    
+    estimator : oggetto estimator
+        Un modello di machine learning che implementa i metodi `set_params` e `fit`.
+    
     hp_conf : dict
-        Iperparametri, le chiavi rapresentano il nome dell'iperparametro, il volore invece il valore 
-        dell'iperparametro.
+        Un dizionario contenente i nomi degli iperparametri e i rispettivi valori.
+    
+    Returns:
+    --------
+    Nessuno
+        La funzione addestra l'estimatore in loco.
+
+    Esempio:
+    --------
+    >>> from sklearn.ensemble import RandomForestClassifier
+    >>> X = [[1, 2], [3, 4], [5, 6]]
+    >>> y = [0, 1, 0]
+    >>> estimator = RandomForestClassifier()
+    >>> hp_conf = {'n_estimators': 100, 'max_depth': 5}
+    >>> fit_estimator(X, y, estimator, hp_conf)
     """
     estimator.set_params(**hp_conf)
     estimator.fit(X, y)
@@ -515,9 +531,9 @@ def learn(X, y, estimator, param_grid, outer_split_method, inner_split_method,
     Parameters
     ----------
     X : array-like
-        Osservazioni del dataset
+        Osservazioni del dataset.
     y : array-like
-        Etichette del dataset
+        Etichette del dataset.
     estimator : estimator object
         Un modello predittivo che implementa i metodi `fit()`, set_params() ed `predict()` 
     param_grid : dict
