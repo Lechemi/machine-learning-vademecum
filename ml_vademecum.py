@@ -421,10 +421,10 @@ def fit_estimator(X, y, estimator, hp_conf):
         Etichette del dataset.
     
     estimator : oggetto estimator
-        Un modello di machine learning che implementa i metodi `set_params` e `fit`.
+        Modello predittivo che implementa i metodi `set_params` e `fit`.
     
     hp_conf : dict
-        Un dizionario contenente i nomi degli iperparametri e i rispettivi valori.
+        Dizionario contenente i nomi degli iperparametri e i rispettivi valori.
     
     Returns:
     --------
@@ -465,10 +465,10 @@ def get_score(X_test, y_test, estimator, scorer):
         Etichette del dataset con sui confrontare le predizioni.
         
     estimator : estimator object
-        Modello di machine learning che implementa la funzione `predict()`.
+        Modello predittivo che implementa la funzione `predict()`.
         
     scorer : callable
-        Una funzione di scoring che, date le etichette e le predizioni, restituisce un punteggio.
+        Funzione di scoring che, date le etichette e le predizioni, restituisce un punteggio.
     
     Returns:
     -------
@@ -508,16 +508,16 @@ def check_best(minimize, score, best_score):
         Indica se la strategia di ottimizzazione è di minimizzazione (`True`) o di massimizzazione (`False`).
         
     score : float
-        Il punteggio corrente che si vuole confrontare con il miglior punteggio.
+        Punteggio corrente che si vuole confrontare con il miglior punteggio.
         
     best_score : float
-        Il miglior punteggio trovato finora.
+        Miglior punteggio trovato finora.
     
     Returns:
     -------
     bool
-        Restituisce `True` se il punteggio corrente è migliore del miglior punteggio in base alla strategia 
-        di ottimizzazione, altrimenti, restituisce `False`.
+        `True` se il punteggio corrente è migliore del miglior punteggio in base alla strategia 
+        di ottimizzazione; `False` altrimenti.
     
     Examples:
     --------
@@ -548,39 +548,49 @@ def learn(X, y, estimator, param_grid, outer_split_method, inner_split_method,
     Addestra un modello predittivo e ottimizza i suoi iperparametri usando una procedura generica 
     di divisione dei dati (es: cross-validation, hold-out).
     
-    Parameters
+    Parameters:
     ----------
     X : array-like
         Osservazioni del dataset.
+        
     y : array-like
         Etichette del dataset.
+        
     estimator : estimator object
-        Un modello predittivo che implementa i metodi `fit()`, set_params() ed `predict()` 
+        Modello predittivo che implementa i metodi `fit()`, set_params() e `predict()`.
+        
     param_grid : dict
-        Un dizionario che mappa i nomi degli iperparametri a una lista di valori possibili.
-    outer_split_method : splitter object
-        Un oggetto che genera la suddivisione esterna dei dati in sottoinsiemi di train/val e test.
-    inner_split_method : splitter object
-        Un oggetto che genera la suddivisione interna dei dati in train e validation.
+        Griglia degli iperparametri. Ogni coppia k-v è del tipo `nome_iperparametro : lista_possibili_valori`.
+        
+    outer_split_method : object
+        Oggetto dotato del metodo `split()`, che genera la suddivisione esterna 
+        dei dati in sottoinsiemi di training/validation e test.
+        
+    inner_split_method : object
+        Oggetto dotato del metodo `split()`, che genera la suddivisione interna 
+        dei dati in sottoinsiemi di training e validation.
+        
     val_scorer : callable, optional, default=metrics.root_mean_squared_error
-        Funzione di scoring per valutare le prestazioni del modello sui dati di validazione interna.
+        Funzione di scoring per valutare le prestazioni del modello sul validation set.
+        
     minimize_val_scorer : bool, optional, default=True
-        Se `True`, la funzione cerca di minimizzare il punteggio calcolato dal `val_scorer`. 
+        Se `True`, la funzione cerca di minimizzare la metrica calcolata `val_scorer`. 
         Se `False`, cerca di massimizzarlo.
+        
     test_scorer : callable, optional, default=metrics.root_mean_squared_error
-        Funzione di scoring per valutare le prestazioni del modello sui dati di test.
+        Funzione di scoring per valutare le prestazioni del modello sul test set.
+        
     minimize_test_scorer : bool, optional, default=True
-        Se `True`, la funzione cerca di minimizzare il punteggio calcolato dal `test_scorer`. 
+        Se `True`, la funzione cerca di minimizzare la metrica calcolata da `test_scorer`. 
         Se `False`, cerca di massimizzarlo.
     
-    
-    Returns
+    Returns:
     -------
-    estimator : estimator object
-        Il modello addestrato sui dati completi con la configurazione di iperparametri ottimale.
-    outer_score : float
-        Il punteggio medio calcolato sugli split esterni usando la funzione `test_scorer`.
-    
+    estimator object
+        Il modello addestrato sull'intero dataset con la configurazione di iperparametri ottimale.
+        
+    float
+        Lo score finale del modello.
     """
 
     outer_scores = []
