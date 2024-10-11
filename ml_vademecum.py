@@ -380,7 +380,7 @@ import itertools as it
 
 def make_hp_configurations(grid):
     """
-    Genera tutte le combinazioni possibili di iperparametri basate su `grid`.
+    Genera tutte le combinazioni possibili di iperparametri basate su una griglia fornita.
     
     Parameters:
     ----------
@@ -410,7 +410,7 @@ def make_hp_configurations(grid):
 
 def fit_estimator(X, y, estimator, hp_conf):
     """
-    Configura e addestra un modello di machine learning con gli iperparametri forniti.
+    Configura e addestra un modello predittivo con gli iperparametri forniti.
 
     Parameters:
     ----------
@@ -665,104 +665,121 @@ learn(X, y, model, hp_grid, skf, sss,
 # Il parametro `random_state` serve per rendere i risultati riproducibili.  
 # Da notare anche che scegliamo di utilizzare l'accuratezza come metrica di valutazione.
 
-# ### Parallelizzare
+# #### Parallelizzare
 
-# La funzione learn vista prima esegue tutti i passaggi sequenzialmente, possiamo fare molto meglio andando a sfruttare i core del nostro hardware, permettendoci di eseguire parallelamente più parti del nostro codice e quindi di andare a ridurre quello che è il tempo di esecuzione.
-# Per poterlo fare bisogna fare delle modifiche alla funzione `learn` e dobbiamo anche andare a creare una funzione `fit_and_score` per la parte di codice che verrà eseguita in parallelo.
+# Possiamo modificare la funzione `learn` per fare in modo che la fase di tuning degli iperparametri sia svolta in parallelo, **testando contemporaneamente più configurazioni diverse**, quindi riducendo il tempo di esecuzione.  
+# Isoliamo proprio la parte di allenamento e valutazione della singola configurazione in una funzione apposita, che chiamiamo `fit_and_score`.
 
 def fit_and_score(estimator,
-                  X_trainval, y_trainval,
-                  hp_conf, inner_split_method,
-                  val_scorer=metrics.root_mean_squared_error):
+                  X, y,
+                  hp_conf, split_method,
+                  scorer=metrics.root_mean_squared_error):
     """
-    Addestra il modello con una specifica configurazione di iperparametri e valuta le sue prestazioni
-    su un set di validazione utilizzando una procedura di suddivisione interna.
+    Addestra il modello con una specifica configurazione di iperparametri; lo valuta con 
+    la metrica e la metodologia di suddivisione del dataset fornite.
     
-    Parameters
+    Parameters:
     ----------
     estimator : estimator object
-        Il modello predittivo da addestrare. Deve implementare i metodi `fit()` e `set_params()`.
-    X_trainval : array-like
-        I dati di input per l'addestramento e la validazione.
-    y_trainval : array-like
-        Le etichette associate ai dati di input.
+        Modello predittivo da addestrare. Deve implementare i metodi `fit()` e `set_params()`.
+        
+    X : array-like
+        Osservazioni del dataset.
+        
+    y : array-like
+        Etichette del dataset.
+        
     hp_conf : dict
-        Un dizionario contenente la configurazione degli iperparametri per l'estimatore.
-        Le chiavi sono i nomi degli iperparametri, e i valori sono i valori da impostare.
-    inner_split_method : splitter object
-        Un oggetto che genera la suddivisione dei dati di trainval in sottoinsiemi di training e validation.
-    val_scorer : callable, optional, default=metrics.root_mean_squared_error
-        Funzione di scoring per valutare le prestazioni del modello sui dati di validazione.
+        Dizionario contenente i nomi degli iperparametri e i rispettivi valori.
+        
+    split_method : object
+        Oggetto dotato del metodo `split()`, che genera la suddivisione 
+        dei dati in sottoinsiemi di training e testing.
+        
+    scorer : callable, optional, default=metrics.root_mean_squared_error
+        Funzione di scoring per valutare le prestazioni del modello.
     
-    Returns
+    Returns:
     -------
-    mean_conf_score : float
-        Il punteggio medio ottenuto dal modello sui vari split di validazione.
-    hp_conf : dict
-        La configurazione di iperparametri utilizzata per addestrare il modello.
+    float
+        Score finale ottenuto dal modello.
+    dict
+        Configurazione di iperparametri utilizzata per addestrare il modello.
     """
     
     estimator.set_params(**hp_conf)
     conf_scores = []
             
-    for train_index, val_index in inner_split_method.split(X_trainval, y_trainval):
-        # Ad ogni iterazione corrisponde una suddivisione diversa in train e val
+    for train_index, val_index in split_method.split(X, y):
                 
-        X_train, X_val = X_trainval[train_index], X_trainval[val_index]
-        y_train, y_val = y_trainval[train_index], y_trainval[val_index]
+        X_train, X_val = X[train_index], X[val_index]
+        y_train, y_val = y[train_index], y[val_index]
 
         estimator.fit(X_train, y_train)
-        conf_scores.append(get_score(X_val, y_val, estimator, val_scorer))
+        conf_scores.append(get_score(X_val, y_val, estimator, scorer))
 
     return np.mean(conf_scores), hp_conf
 
+
+# Possiamo ora definire la funzione `learn_parallel`.
 
 # +
 from joblib import Parallel, delayed
 import copy
 
-def learn(X, y, estimator, param_grid, outer_split_method, inner_split_method, n_jobs,
+def learn_parallel(X, y, estimator, param_grid, outer_split_method, inner_split_method, n_jobs,
             val_scorer=metrics.root_mean_squared_error, minimize_val_scorer=True, 
             test_scorer=metrics.root_mean_squared_error, minimize_test_scorer=True):
     """
     Addestra un modello predittivo e ottimizza i suoi iperparametri usando una procedura generica 
     di divisione dei dati (es: cross-validation, hold-out).
     
-    Parameters
+    Parameters:
     ----------
     X : array-like
-        Dati di input.
+        Osservazioni del dataset.
+        
     y : array-like
-        Etichette dei dati di input
+        Etichette del dataset.
+        
     estimator : estimator object
-        Un modello predittivo che implementa i metodi `fit()`, set_params() ed `predict()` 
+        Modello predittivo che implementa i metodi `fit()`, set_params() e `predict()`.
+        
     param_grid : dict
-        Un dizionario che mappa i nomi degli iperparametri a una lista di valori possibili.
-    outer_split_method : splitter object
-        Un oggetto che genera la suddivisione esterna dei dati in sottoinsiemi di train/val e test.
-    inner_split_method : splitter object
-        Un oggetto che genera la suddivisione interna dei dati in train e validation.
-    n_jobs : int
+        Griglia degli iperparametri. Ogni coppia k-v è del tipo `nome_iperparametro : lista_possibili_valori`.
+        
+    outer_split_method : object
+        Oggetto dotato del metodo `split()`, che genera la suddivisione esterna 
+        dei dati in sottoinsiemi di training/validation e test.
+        
+    inner_split_method : object
+        Oggetto dotato del metodo `split()`, che genera la suddivisione interna 
+        dei dati in sottoinsiemi di training e validation.
+
+    n_jobs: int
         Numero di processi da eseguire in parallelo.
+        
     val_scorer : callable, optional, default=metrics.root_mean_squared_error
-        Funzione di scoring per valutare le prestazioni del modello sui dati di validazione interna.
+        Funzione di scoring per valutare le prestazioni del modello sul validation set.
+        
     minimize_val_scorer : bool, optional, default=True
-        Se `True`, la funzione cerca di minimizzare il punteggio calcolato dal `val_scorer`. 
+        Se `True`, la funzione cerca di minimizzare la metrica calcolata `val_scorer`. 
         Se `False`, cerca di massimizzarlo.
+        
     test_scorer : callable, optional, default=metrics.root_mean_squared_error
-        Funzione di scoring per valutare le prestazioni del modello sui dati di test.
+        Funzione di scoring per valutare le prestazioni del modello sul test set.
+        
     minimize_test_scorer : bool, optional, default=True
-        Se `True`, la funzione cerca di minimizzare il punteggio calcolato dal `test_scorer`. 
+        Se `True`, la funzione cerca di minimizzare la metrica calcolata da `test_scorer`. 
         Se `False`, cerca di massimizzarlo.
     
-    
-    Returns
+    Returns:
     -------
-    estimator : estimator object
-        Il modello addestrato sui dati completi con la configurazione di iperparametri ottimale.
-    outer_score : float
-        Il punteggio medio calcolato sugli split esterni usando la funzione `test_scorer`.
-    
+    estimator object
+        Il modello addestrato sull'intero dataset con la configurazione di iperparametri ottimale.
+        
+    float
+        Lo score finale del modello.
     """
 
     outer_scores = []
@@ -771,7 +788,6 @@ def learn(X, y, estimator, param_grid, outer_split_method, inner_split_method, n
     best_conf = None
 
     for trainval_index, test_index in outer_split_method.split(X, y):
-        # Ad ogni iterazione corrisponde una suddivisione diversa in trainval e test
         
         X_trainval, X_test = X[trainval_index], X[test_index]
         y_trainval, y_test = y[trainval_index], y[test_index]
@@ -782,7 +798,7 @@ def learn(X, y, estimator, param_grid, outer_split_method, inner_split_method, n
         results = Parallel(n_jobs=n_jobs)(delayed(fit_and_score)(copy.deepcopy(estimator),
                                                               X_trainval, y_trainval,
                                                               hp_conf, inner_split_method,
-                                                              val_scorer=val_scorer)
+                                                              scorer=val_scorer)
                                        for hp_conf in make_hp_configurations(param_grid))
         
         result = sorted(results, key=lambda t: t[0])[0]
@@ -800,22 +816,9 @@ def learn(X, y, estimator, param_grid, outer_split_method, inner_split_method, n
     return estimator, np.mean(outer_scores)
 
 
-# +
-from sklearn.model_selection import StratifiedKFold
-from sklearn.model_selection import StratifiedShuffleSplit
-
-folds = 5
-n_jobs = -1
-skf = StratifiedKFold(n_splits=folds, shuffle=True, random_state=42)
-sss = StratifiedShuffleSplit(n_splits=5, test_size=1/(folds-1), random_state=42)
-X = iris['data']
-y = iris['target']
-hp_grid = {'n_neighbors': [1, 3, 5, 7, 9]}
-model = KNeighborsClassifier()
-
-learn(X, y, model, hp_grid, skf, sss, n_jobs,
-    val_scorer=metrics.accuracy_score, minimize_val_scorer=False,
-    test_scorer=metrics.accuracy_score, minimize_test_scorer=False)
 # -
 
+# Il suo utilizzo è analogo a quello di `learn`, con l'unica differenza data dalla presenza del parametro `n_jobs`. Per stabilire quanti processi possiamo eseguire in parallelo, possiamo importare il modulo **multiprocessing**, la cui funzione `cpu_count()` restituisce il numero di core dell'elaboratore con cui stiamo lavorando.
 
+import multiprocessing as mp
+n_jobs = mp.c
