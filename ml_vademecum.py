@@ -382,17 +382,17 @@ def make_hp_configurations(grid):
     """
     Genera tutte le combinazioni possibili di iperparametri basate su `grid`.
     
-    Parameters
+    Parameters:
     ----------
     grid : dict
         Griglia degli iperparametri. Ogni coppia k-v è del tipo `nome_iperparametro : lista_possibili_valori`.
     
-    Returns
+    Returns:
     -------
     list of dict
         Tutte le possibili configurazioni per gli iperparametri.
     
-    Examples
+    Examples:
     --------
     >>> grid = {'n_neighbors': [1, 3], 'metric': ["nan_euclidean", "manhattan"]}
     >>> make_hp_configurations(grid)
@@ -440,6 +440,7 @@ def fit_estimator(X, y, estimator, hp_conf):
     >>> hp_conf = {'n_estimators': 100, 'max_depth': 5}
     >>> fit_estimator(X, y, estimator, hp_conf)
     """
+    
     estimator.set_params(**hp_conf)
     estimator.fit(X, y)
 
@@ -453,26 +454,42 @@ import sklearn.metrics as metrics
 
 def get_score(X_test, y_test, estimator, scorer): 
     """
-    Calcola il punteggio del modello predittivo usando un metodo di scoring specificato.
+    Calcola il punteggio del modello predittivo usando il metodo di scoring specificato.
     
-    Parameters
+    Parameters:
     ----------
     X_test : array-like
-        Dati di test per fare previsioni.
+        Osservazioni del dataset da classificare.
+        
     y_test : array-like
-        Etichette dei dati ti test.
+        Etichette del dataset con sui confrontare le predizioni.
+        
     estimator : estimator object
-        Modello di machine learning che implementa la funzione predict().
+        Modello di machine learning che implementa la funzione `predict()`.
+        
     scorer : callable
-        Una funzione di scoring che prende due parametri (i valori reali e quelli predetti)
-        e restituisce un punteggio.
+        Una funzione di scoring che, date le etichette e le predizioni, restituisce un punteggio.
     
-    Returns
+    Returns:
     -------
     float
         Il punteggio calcolato in base alle previsioni fatte dal modello sui dati di test e
         valutato con la funzione di scoring.
+
+    Example:
+    --------
+    >>> from sklearn.ensemble import RandomForestClassifier
+    >>> from sklearn.metrics import accuracy_score
+    >>> X_train = [[1, 2], [3, 4], [5, 6], [7, 8]]
+    >>> y_train = [0, 1, 0, 1]
+    >>> X_test = [[9, 10], [11, 12]]
+    >>> y_test = [1, 0]
+    >>> estimator = RandomForestClassifier()
+    >>> estimator.fit(X_train, y_train)
+    >>> score = get_score(X_test, y_test, estimator, accuracy_score)
+    >>> print(score)
     """
+    
     return scorer(y_test, estimator.predict(X_test))
 
 
