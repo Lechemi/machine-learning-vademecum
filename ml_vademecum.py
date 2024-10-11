@@ -385,13 +385,12 @@ def make_hp_configurations(grid):
     Parameters
     ----------
     grid : dict
-        dizionario dove le chiavi sono i nomi degli iperparametri, mentre i valori di ognuna delle chiavi sono
-        delle liste, che contengono i possibili valori dell'iperparametro.
+        Griglia degli iperparametri. Ogni elemento è del tipo 'nome_iperparametro' : [lista_possibili_valori].
     
     Returns
     -------
     list of dict
-        ogni elemento rappresenta una combinazione unica di iperparametri.
+        Tutte le possibili configurazioni per gli iperparametri.
     
     Examples
     --------
@@ -406,11 +405,6 @@ def make_hp_configurations(grid):
 
 
 # -
-
-# Ecco un esempio del suo utilizzo. Le liste contengono i possibili valori rispettivamente per `hp_1` e per `hp_2`.
-
-make_hp_configurations({'hp_1':[1,2,3], 'hp_2':['a','b','c']})
-
 
 # La seconda funzione ausiliaria è `fit_estimator`, che riceve un modello, una configurazione per i suoi iperparametri, ed esegue il training sul dataset specificato.
 
@@ -521,9 +515,9 @@ def learn(X, y, estimator, param_grid, outer_split_method, inner_split_method,
     Parameters
     ----------
     X : array-like
-        Dati di input.
+        Osservazioni del dataset
     y : array-like
-        Etichette dei dati di input
+        Etichette del dataset
     estimator : estimator object
         Un modello predittivo che implementa i metodi `fit()`, set_params() ed `predict()` 
     param_grid : dict
