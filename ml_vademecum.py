@@ -502,22 +502,24 @@ def check_best(minimize, score, best_score):
     Verifica se il punteggio corrente è migliore rispetto al miglior punteggio finora, 
     in base alla strategia di minimizzazione o massimizzazione.
     
-    Parameters
+    Parameters:
     ----------
     minimize : bool
         Indica se la strategia di ottimizzazione è di minimizzazione (`True`) o di massimizzazione (`False`).
+        
     score : float
         Il punteggio corrente che si vuole confrontare con il miglior punteggio.
+        
     best_score : float
         Il miglior punteggio trovato finora.
     
-    Returns
+    Returns:
     -------
     bool
         Restituisce `True` se il punteggio corrente è migliore del miglior punteggio in base alla strategia 
         di ottimizzazione, altrimenti, restituisce `False`.
     
-    Examples
+    Examples:
     --------
     >>> check_best(True, 0.2, 0.5)
     True
@@ -526,6 +528,7 @@ def check_best(minimize, score, best_score):
     >>> check_best(True, 0.6, 0.5)
     False
     """
+    
     return (minimize and score < best_score) or (not minimize and score > best_score)
 
 
