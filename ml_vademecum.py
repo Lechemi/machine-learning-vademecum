@@ -1,7 +1,7 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: ipynb,py
+#     formats: ipynb,py:light
 #     text_representation:
 #       extension: .py
 #       format_name: light
@@ -821,4 +821,19 @@ def learn_parallel(X, y, estimator, param_grid, outer_split_method, inner_split_
 # Il suo utilizzo è analogo a quello di `learn`, con l'unica differenza data dalla presenza del parametro `n_jobs`. Per stabilire quanti processi possiamo eseguire in parallelo, possiamo importare il modulo **multiprocessing**, la cui funzione `cpu_count()` restituisce il numero di core dell'elaboratore con cui stiamo lavorando.
 
 import multiprocessing as mp
-n_jobs = mp.c
+n_jobs = mp.cpu_count()
+n_jobs
+
+# Spieghiamo come funziona l'esecuzione in parallelo di più processi all'interno della funzione *learn_parallel*:
+# ```python
+# Parallel(n_jobs=n_jobs)(delayed(fit_and_score)(copy.deepcopy(estimator),
+#                                                               X_trainval, y_trainval,
+#                                                               hp_conf, inner_split_method,
+#                                                               scorer=val_scorer)
+#                                        for hp_conf in make_hp_configurations(param_grid))
+# ```
+# Dopo aver invocato il costruttore ```Parallel(n_jobs=n_jobs)``` devo passargli come argomento una funzione che voglio venga eseguita in parallelo, di usa ```delayed```, che permette di specificare una funzione senza effettivamente chiamarla, per fare in modo che l'esecuzione di ```fit_and_score``` sia parallela e non sequenziale.
+# L'espressione ```for hp_conf in make_hp_configurations(param_grid)``` è una **generator expression**, ossia un'espressione che produce un oggetto generatore, che genera i valori uno alla volta al momento della richiesta; in questo caso specifico, una alla volta, genera delle configurazioni di iperparametri.
+# Si usa questo tipo di espressione perché Parallel
+
+
