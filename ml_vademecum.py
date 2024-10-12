@@ -834,6 +834,6 @@ n_jobs
 # ```
 # Dopo aver invocato il costruttore ```Parallel(n_jobs=n_jobs)``` devo passargli come argomento una funzione che voglio venga eseguita in parallelo, di usa ```delayed```, che permette di specificare una funzione senza effettivamente chiamarla, per fare in modo che l'esecuzione di ```fit_and_score``` sia parallela e non sequenziale.
 # L'espressione ```for hp_conf in make_hp_configurations(param_grid)``` è una **generator expression**, ossia un'espressione che produce un oggetto generatore, che genera i valori uno alla volta al momento della richiesta; in questo caso specifico, una alla volta, genera delle configurazioni di iperparametri.
-# Si usa questo tipo di espressione perché Parallel
+# Si usa questo tipo di espressione in modo che Parallel assegni a ogni iterabile(elemento generato) un core diverso.
 
 
