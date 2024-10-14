@@ -220,7 +220,7 @@
 #
 # Merita particolare attenzione il caso in cui si scelga di utilizzare la cross-validation per la suddivisione esterna. A ogni iterazione esterna corrisponde un train set diverso, dunque un modello allenato diversamente, i cui iperparametri ottimali possono quindi differire da quelli dei modelli relativi alle altre iterazioni esterne. Ogni iterazione esterna può potenzialmente produrre un modello "unico" nei suoi iperparametri. In questo caso, possiamo scegliere uno qualsiasi dei modelli addestrati.
 
-# ## Esempi pratici usando scikit-learn
+# ## Esempi pratici con scikit-learn
 # Vediamo degli esempi pratici che coinvolgono KNN. Utilizziamo il **dataset _iris_**, già disponibile in scikit-learn, che comprende osservazioni relative a tre sottospecie di pianta iris: _Setosa_, _Versicolor_ e _Virginica_.  
 # Affrontiamo un semplice problema di classificazione binaria: dati i quattro attributi del dataset, dobbiamo stabilire se una pianta appartenga o meno alla sottospecie Setosa.
 
@@ -818,13 +818,8 @@ def learn_parallel(X, y, estimator, param_grid, outer_split_method, inner_split_
 
 # -
 
-# Il suo utilizzo è analogo a quello di `learn`, con l'unica differenza data dalla presenza del parametro `n_jobs`. Per stabilire quanti processi possiamo eseguire in parallelo, possiamo importare il modulo **multiprocessing**, la cui funzione `cpu_count()` restituisce il numero di core dell'elaboratore con cui stiamo lavorando.
-
-import multiprocessing as mp
-n_jobs = mp.cpu_count()
-n_jobs
-
-# Spieghiamo come funziona l'esecuzione in parallelo di più processi all'interno della funzione *learn_parallel*:
+# L'esecuzione in parallelo è merito di questa porzione di codice:
+#
 # ```python
 # Parallel(n_jobs=n_jobs)(delayed(fit_and_score)(copy.deepcopy(estimator),
 #                                                               X_trainval, y_trainval,
@@ -832,8 +827,12 @@ n_jobs
 #                                                               scorer=val_scorer)
 #                                        for hp_conf in make_hp_configurations(param_grid))
 # ```
-# Dopo aver invocato il costruttore ```Parallel(n_jobs=n_jobs)``` devo passargli come argomento una funzione che voglio venga eseguita in parallelo, di usa ```delayed```, che permette di specificare una funzione senza effettivamente chiamarla, per fare in modo che l'esecuzione di ```fit_and_score``` sia parallela e non sequenziale.
-# L'espressione ```for hp_conf in make_hp_configurations(param_grid)``` è una **generator expression**, ossia un'espressione che produce un oggetto generatore, che genera i valori uno alla volta al momento della richiesta; in questo caso specifico, una alla volta, genera delle configurazioni di iperparametri.
-# Si usa questo tipo di espressione in modo che Parallel assegni a ogni iterabile(elemento generato) un core diverso.
+# Il costruttore `Parallel(n_jobs=n_jobs)` restituisce un oggetto di tipo `Parallel`, che può essere chiamato esattamente come una funzione (vedi oggetti callable). Noi lo invochiamo passandogli come argomento la funzione che vogliamo venga eseguita in parallelo, ossia `fit_and_score`. Tuttavia, non lo facciamo direttamente: utilizziamo la funzione `delayed`, che permette di specificare una funzione (coi suoi argomenti) senza effettivamente chiamarla, per fare in modo che la sua esecuzione sia parallela e non sequenziale.  
+# L'espressione `for hp_conf in make_hp_configurations(param_grid)` è una **generator expression**, ossia un'espressione che produce un oggetto generatore, che genera i valori uno alla volta al momento della richiesta; in questo caso specifico, una alla volta, genera le configurazioni degli iperparametri.  
+# Si usa questo tipo di espressione in modo che Parallel assegni a ogni iterabile (elemento generato) un core diverso.
+#
+# L'utilizzo di `learn_parallel` è analogo a quello di `learn`, con l'unica differenza data dalla presenza del parametro `n_jobs`. Per stabilire quanti processi possiamo eseguire in parallelo, possiamo importare il modulo **multiprocessing**, la cui funzione `cpu_count()` restituisce il numero di core dell'elaboratore con cui stiamo lavorando.
 
-
+import multiprocessing as mp
+n_jobs = mp.cpu_count()
+n_jobs
