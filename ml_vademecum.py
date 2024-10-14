@@ -836,3 +836,33 @@ def learn_parallel(X, y, estimator, param_grid, outer_split_method, inner_split_
 import multiprocessing as mp
 n_jobs = mp.cpu_count()
 n_jobs
+
+# #### Serializzare
+
+# Risulta fondamentale quando si è investito molto tempo nell'addestramento di un modello e nel tuning degli iperparametri, poiché consente di salvare lo stato attuale del modello e dei parametri ottimizzati.<br>
+# Questo permette di ripristinarli facilmente senza la necessità di ripetere l'intero processo di addestramento da zero.
+
+# Il modulo per fare questa operazione in python è **pickle**
+
+import pickle
+
+# Inizializziamo il modello che vogliamo salvare
+
+# +
+from sklearn.neighbors import KNeighborsClassifier
+
+knn = KNeighborsClassifier(n_neighbors=3)
+# -
+
+# La funzione *pickle.dump* permette di scrivere sul file(in questo caso *example.pickle*) la rappresentazione binaria del modello
+
+with open('example.pickle', 'wb') as file:
+    pickle.dump(knn, file)
+
+# La funzione *pickle.load* permette di recuperare da file(in questo caso *example.pickle*) il modello salvato in precedenza
+
+with open('example.pickle', 'rb') as file:
+    knn = pickle.load(file)
+knn.n_neighbors
+
+
