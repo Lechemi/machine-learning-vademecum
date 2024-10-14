@@ -856,52 +856,13 @@ knn = KNeighborsClassifier(n_neighbors=3)
 
 # La funzione *pickle.dump* permette di scrivere sul file(in questo caso *example.pickle*) la rappresentazione binaria del modello
 
-with open('serializzazione-esempio/example.pickle', 'wb') as file:
+with open('example.pickle', 'wb') as file:
     pickle.dump(knn, file)
 
 # La funzione *pickle.load* permette di recuperare da file(in questo caso *example.pickle*) il modello salvato in precedenza
 
-with open('serializzazione-esempio/example.pickle', 'rb') as file:
+with open('example.pickle', 'rb') as file:
     knn = pickle.load(file)
 knn.n_neighbors
 
-# #### Logging
 
-# Fare logging è fondamentale per salvare dei risultati ottenuti in esperimenti, per fare in modo di non doverli fare di nuovo, se eseguiti in precedenza
-
-# Il modulo per fare questa operazione è **logging**
-
-# +
-import logging
-import json
-from sklearn.neighbors import KNeighborsClassifier
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s > %(message)s')
-file_handler = logging.FileHandler('example.log')
-file_handler.setLevel(logging.INFO)
-file_handler.setFormatter(formatter)
-
-logger.addHandler(file_handler)
-
-skf = StratifiedKFold(n_splits=folds, shuffle=True, random_state=42)
-sss = StratifiedShuffleSplit(n_splits=5, test_size=1/(folds-1), random_state=42)
-
-n_jobs = -1
-
-estimator, accuracy = learn_parallel(
-    iris['data'], 
-    iris['target'],
-    KNeighborsClassifier(),
-    {'n_neighbors' : [1,3,5,7,9]},
-    skf,
-    sss,
-    n_jobs,
-    val_scorer=metrics.accuracy_score, minimize_val_scorer=False,
-    test_scorer=metrics.accuracy_score, minimize_test_scorer=False
-)
-
-log_line = json.dumps({'n_neighbors' : estimator.n_neighbors, 'accuracy' : accuracy})
-log_line
-logger.info(log_line)
