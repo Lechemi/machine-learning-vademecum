@@ -665,7 +665,7 @@ learn(X, y, model, hp_grid, skf, sss,
 # Il parametro `random_state` serve per rendere i risultati riproducibili.  
 # Da notare anche che scegliamo di utilizzare l'accuratezza come metrica di valutazione.
 
-# #### Parallelizzare
+# #### Parallelizzazione
 
 # Possiamo modificare la funzione `learn` per fare in modo che la fase di tuning degli iperparametri sia svolta in parallelo, **testando contemporaneamente più configurazioni diverse**, quindi riducendo il tempo di esecuzione.  
 # Isoliamo proprio la parte di allenamento e valutazione della singola configurazione in una funzione apposita, che chiamiamo `fit_and_score`.
@@ -837,31 +837,32 @@ import multiprocessing as mp
 n_jobs = mp.cpu_count()
 n_jobs
 
-# #### Serializzare
+learn_parallel(X, y, model, hp_grid, skf, sss, n_jobs-2,
+    val_scorer=metrics.accuracy_score, minimize_val_scorer=False,
+    test_scorer=metrics.accuracy_score, minimize_test_scorer=False)
 
-# Risulta fondamentale quando si è investito molto tempo nell'addestramento di un modello e nel tuning degli iperparametri, poiché consente di salvare lo stato attuale del modello e dei parametri ottimizzati.<br>
-# Questo permette di ripristinarli facilmente senza la necessità di ripetere l'intero processo di addestramento da zero.
+# #### Serializzazione
 
-# Il modulo per fare questa operazione in python è **pickle**
+# Serializzare un modello allenato significa convertirne l'intero stato - parametri e iperparametri - in un formato che può essere facilmente memorizzato su un file. Una volta serializzato, il modello può essere salvato per usi futuri, per cui verrà **deserializzato** per essere ricaricato e utilizzato in un'altra sessione.  
+# Ovviamente, serializzare è fondamentale quando si è investito molto tempo nell'addestramento di un modello. Di fatto, l'esempio di seguito non sfrutta realmente i vantaggi della serializzazione; lo portiamo a scopo didattico, come breve guida alla serializzazione in python.
+#
+# Il modulo che utilizziamo è __*pickle*__.
 
 import pickle
 
-# Inizializziamo il modello che vogliamo salvare
-
-# +
-from sklearn.neighbors import KNeighborsClassifier
+# Inizializziamo e addestriamo il modello che vogliamo salvare.
 
 knn = KNeighborsClassifier(n_neighbors=3)
-# -
+knn.fit(X, y)
 
-# La funzione *pickle.dump* permette di scrivere sul file(in questo caso *example.pickle*) la rappresentazione binaria del modello
+# La funzione `dump` permette di serializzare e salvare sul file specificato (in questo caso *example.pickle*) il modello.
 
-with open('serializzazione-esempio/example.pickle', 'wb') as file:
+with open('example.pickle', 'wb') as file:
     pickle.dump(knn, file)
 
-# La funzione *pickle.load* permette di recuperare da file(in questo caso *example.pickle*) il modello salvato in precedenza
+# La funzione `load`, invece, permette di leggere e deserializzare il modello dal file specificato.
 
-with open('serializzazione-esempio/example.pickle', 'rb') as file:
+with open('example.pickle', 'rb') as file:
     knn = pickle.load(file)
 knn.n_neighbors
 
@@ -905,3 +906,6 @@ estimator, accuracy = learn_parallel(
 log_line = json.dumps({'n_neighbors' : estimator.n_neighbors, 'accuracy' : accuracy})
 log_line
 logger.info(log_line)
+# -
+
+
