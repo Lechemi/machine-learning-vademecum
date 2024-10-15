@@ -868,28 +868,29 @@ knn.n_neighbors
 
 # #### Logging
 
-# Fare logging è fondamentale per salvare dei risultati ottenuti in esperimenti, per fare in modo di non doverli fare di nuovo, se eseguiti in precedenza
+# Fare logging significa registrare su un file di testo apposito qualsiasi informazione si ritenga importante relativamente ad un esperimento svolto. Nel nostro caso, il logging è utile per salvare l'esito di una fase di apprendimento, che può comprendere, ad esempio, la configurazione di iperparametri trovata, i valori delle metriche di valutazione e il tempo impiegato.  
+# Mantenere una cronologia degli esperimenti svolti ci evita di doverli ripetere, ci consente di confrontare più facilmente i loro risultati, di scegliere più chiaramente cosa svolgere in futuro e aiuta nel debugging.
+#
+# Il modulo che utilizziamo è **_logging_**.
 
-# Il modulo per fare questa operazione è **logging**
-
-# +
 import logging
-import json
-from sklearn.neighbors import KNeighborsClassifier
 
-logger = logging.getLogger(__name__)
+# Otteniamo un logger e impostiamo il suo livello di log su `INFO`.
+
+logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+# Questo significa che solo i messaggi di livello `INFO` o superiore verranno registrati. I messaggi di livello inferiore verranno ignorati. I livelli sono, a salire: `DEBUG`, `INFO`, `WARNING`, `ERROR`, e `CRITICAL`.  
+#
+# Ora definiamo il formato del messaggio di log. Vogliamo che sia del tipo: _timestamp del messaggio > messaggio_.
+
 formatter = logging.Formatter('%(asctime)s > %(message)s')
+# Il nostro obiettivo è registrare i messaggi di log su un file a parte, che scegliamo essere *example.log*. Dunque definiamo un `file_handler` che lo gestisca.  Impostiamo il suo livello di log a `INFO` e il formatter a quello sopra definito. Infine, forniamo al logger il file handler appena definito.
+
 file_handler = logging.FileHandler('example.log')
 file_handler.setLevel(logging.INFO)
 file_handler.setFormatter(formatter)
-
 logger.addHandler(file_handler)
-
-skf = StratifiedKFold(n_splits=folds, shuffle=True, random_state=42)
-sss = StratifiedShuffleSplit(n_splits=5, test_size=1/(folds-1), random_state=42)
-
-n_jobs = -1
+# Alleniamo un modello con `learn_parallel`.
 
 estimator, accuracy = learn_parallel(
     iris['data'], 
@@ -902,10 +903,15 @@ estimator, accuracy = learn_parallel(
     val_scorer=metrics.accuracy_score, minimize_val_scorer=False,
     test_scorer=metrics.accuracy_score, minimize_test_scorer=False
 )
+# Creiamo un dizionario contenente le informazioni che vogliamo loggare e utilizziamo il modulo *__json__* per serializzarlo in una stringa formato JSON.
 
-log_line = json.dumps({'n_neighbors' : estimator.n_neighbors, 'accuracy' : accuracy})
+# +
+info = {'dataset': 'iris', 'model': 'KNN', 'n_neighbors' : estimator.n_neighbors, 'accuracy' : accuracy}
+
+import json
+log_line = json.dumps(info)
 log_line
-logger.info(log_line)
 # -
+# Infine, registriamo `log_line` sul file di log.
 
-
+logger.info(log_line)
