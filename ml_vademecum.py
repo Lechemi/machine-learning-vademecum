@@ -22,7 +22,7 @@
 # La predizione non deriva da un ragionamento logico comprovato (altrimenti sarebbe sempre esatta), ma dall'essersi scontrati già più volte con le istanze del problema. 
 # Questo ci ha fornito, tramite quello che è un **processo induttivo**, un meccanismo risolutivo col quale affrontare istanze nuove, mai incontrate prima.
 #
-# Seguendo questo paradigma, l'idea alla base del ML è dare in pasto dei **dati** ad un cosiddetto **algoritomo di apprendimento**, che li usi per produrre un **modello** in grado di fornire risposte sufficientemente accurate di fronte a nuove istanze del problema.  
+# Seguendo questo paradigma, l'idea alla base del ML è dare in pasto dei **dati** ad un cosiddetto **algoritmo di apprendimento**, che li usi per produrre un **modello** in grado di fornire risposte sufficientemente accurate di fronte a nuove istanze del problema.  
 # Esattamente come le nostre predizioni possono rivelarsi errate, così possono esserlo le risposte fornite dal modello, al quale si associano quindi delle **metriche** per valutarne le performance.  
 #
 # Ma perché accontentarsi di una risposta *probabilmente* corretta al posto di una la cui correttezza è dimostrabile logicamente?
@@ -36,7 +36,7 @@
 # Per alcuni problemi, formulare una soluzione è del tutto fattibile (se non facile), ma questa ha un **costo computazionale proibitivo**.  
 # Nel <a href="https://it.wikipedia.org/wiki/Problema_dello_zaino">problema dello zaino</a>, la soluzione _brute force_ è concettualmente semplice: basta considerare tutte le possibili combinazioni di oggetti e scegliere quella con il valore massimo senza superare il peso limite. Tuttavia, questa strategia diventa impraticabile al crescere del numero di oggetti ($n$): ad esempio, con $n=50$, si arriva a oltre un milione di miliardi di combinazioni da esaminare ($2^{50}$) .
 #
-# In queste due situazioni ricorriamo ad un modello di ML, nell'ottica che le sue risposte approssimino bene quelle esatte, se il problema ne prevede.
+# In queste due situazioni ricorriamo a un modello di ML, nell'ottica che le sue risposte approssimino bene quelle esatte, se il problema ne prevede.
 
 # ## Modalità di apprendimento
 # In base a come si presentano i dati che l’algoritmo di apprendimento usa per produrre il modello, distinguiamo tra apprendimento **supervisionato** e non.
@@ -61,16 +61,16 @@
 #
 # ### Alcune metriche
 # Presentiamo alcune delle metriche che vengono comunemente impiegate per la valutazione delle prestazioni.  
-# Notazione:
-# - $D$ : dataset, composto da esempi del tipo $(x_i, y_i)$
-# - $m = |D|$
-# - $f$ : modello; $f(x_i)$ è l'output del modello quando sottoposto all'input (istanza) $x_i$
-# - $\mathbb{I}$ : <a href="https://it.wikipedia.org/wiki/Funzione_indicatrice">funzione indicatrice</a>
+# Adotteremo la seguente notazione:
+# - $D$ : dataset, composto da esempi del tipo $(x_i, y_i)$,
+# - $m = |D|$,
+# - $f$ : modello; $f(x_i)$ è l'output del modello quando sottoposto all'input (istanza) $x_i\enspace$,
+# - $\mathbb{I}_A$ : <a href="https://it.wikipedia.org/wiki/Funzione_indicatrice">funzione indicatrice</a> dell'insieme $A$.
 #
 # #### MSE
-# L'errore quadratico medio (Mean Squared Error) è tipicamente utilizzato nei problemi di regressione (come quello descritto nel paragrafo successivo).
+# L'errore quadratico medio (Mean Squared Error) è tipicamente utilizzato nei problemi di regressione (come quello descritto nel paragrafo successivo):
 # $$
-# MSE(f;D)= \frac{1}{m}\sum_{i=1}^{m} (f(x_i) - y_i)^2
+# \mathrm{MSE}(f;D)= \frac{1}{m}\sum_{i=1}^{m} (f(x_i) - y_i)^2 \enspace.
 # $$
 #
 # #### Tasso d'errore (_error rate_) e accuratezza (_accuracy_)
@@ -117,7 +117,7 @@
 # La scelta dei dati da utilizzare per valutare le performance del modello è un aspetto a cui prestare attenzione. Intuitivamente, vorremmo utilizzare gli stessi dati che abbiamo usato per allenare il modello, ossia quelli appartenenti al _**train set**_ $S$.
 # Vediamo come mai questa sia in realtà una cattiva idea.
 #
-# Prendiamo in esame un semplice problema di regressione. Ogni esempio è costituito da due valori reali, $x$ (l'istanza) e $y$ (l'etichetta) e dunque individua un punto nel piano. I punti neri costituiscono $S$, mentre quelli bianchi corrispondono a dati nuovi, mai visti dal modello, e quindi ancora da etichettare. L'obiettivo è, come sempre, approssimare la ground truth, e questo problema permette di visualizzarlo facilmente. Di fatto, in questo caso, il modello non è altro che una curva, e lo valuteremo in base a quanto si discosta mediamente dai punti del dataset (MSE).
+# Prendiamo in esame un semplice problema di interpolazione. Ogni esempio è costituito da due valori reali, $x$ (l'istanza) e $y$ (l'etichetta) e dunque individua un punto nel piano. I punti neri costituiscono $S$, mentre quelli bianchi corrispondono a dati nuovi, mai visti dal modello, e quindi ancora da etichettare. L'obiettivo è, come sempre, approssimare la ground truth, e questo problema permette di visualizzarlo facilmente. Di fatto, in questo caso, il modello non è altro che una curva, e lo valuteremo in base a quanto si discosta mediamente dai punti del dataset (MSE).
 #
 # <div style="text-align: center;">
 #     <img src="images/regressione.jpeg" alt="Descrizione" width="300" height="200">
