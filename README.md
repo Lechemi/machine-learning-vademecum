@@ -1,20 +1,15 @@
 # Guida all'utilizzo del notebook
-### Perché utilizziamo `jupytext`?
-`jupytext` permette, tra le altre cose, di convertire qualsiasi notebook Jupyter in un file `.py` costituito solo dal contenuto effettivo del notebook e privo di tutti i metadati che i file `.ipynb` si trascinano dietro. In questo modo, versioniamo solo ciò che è strettamente necessario.
-
-### Installazione di jupytext
-Utilizzando `pip` :
-  
+Puoi eseguire il comando
   ```console
-  pip install jupytext
+  pip install -r requirements.txt
   ```
-Oppure usando `conda` :
-  
-  ```console
-  conda install jupytext -c conda-forge
-  ```
+per installare i moduli necessari.  
+Per ottenere il notebook a partire dal file `ml_vademecum.py`, vedi il paragrafo 'Conversioni' di seguito.
 
-## Utilizzo
+### Perché utilizziamo Jupytext?
+Jupytext permette, tra le altre cose, di convertire qualsiasi notebook Jupyter in un file `.py` costituito solo dal contenuto effettivo del notebook e privo di tutti i metadati che i file `.ipynb` si trascinano dietro. In questo modo, versioniamo solo ciò che è strettamente necessario.
+
+## Utilizzo di Jupytext
 ### Conversioni
 - Da `.ipynb` a  `.py` :
   
@@ -27,7 +22,7 @@ Oppure usando `conda` :
   jupytext --to notebook notebook.py
   ```
 ### Sincronizzazione
-`jupytext` permette di creare una coppia sincronizzata di notebook ipynb/py, e offre una modalità `--sync` che aggiorna automaticamente il file meno recente della coppia.  
+Jupytext permette di creare una coppia sincronizzata di notebook ipynb/py, e offre una modalità `--sync` che aggiorna automaticamente il file meno recente della coppia.  
 Per convertire `notebook.ipynb` in una coppia sincronizzata di notebook ipynb/py:
 ```console
 jupytext --set-formats ipynb,py notebook.ipynb
