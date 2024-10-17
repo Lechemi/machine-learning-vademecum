@@ -39,19 +39,20 @@
 # In queste due situazioni ricorriamo a un modello di ML, nell'ottica che le sue risposte approssimino bene quelle esatte, se il problema ne prevede. Ovviamente, anche l'approccio ML può fallire; non è garantito che si arrivi sempre a un tale modello.
 
 # ## Algoritmo di apprendimento
-# Un algoritmo di apprendimento non è altro che una funzione $l:(m, D) \rightarrow m'$ che allena il modello $m$ su il dataset $D$, producendo un modello allenato $m'$.  
-# NB: __con "modello" intendiamo__, adottando la semantica più comune, __un'istanza della tipologia di modello__; ad esempio: considerando la tipologia/famiglia degli alberi di decisione, un modello è _uno specifico albero_.  
+# Un algoritmo di apprendimento non è altro che una funzione $l:(m, D) \rightarrow m'$ che allena il modello $m$ sul **_dataset_** (insieme dei dati) $D$, producendo un modello allenato $m'$.  
+# NB: __con _modello_ intendiamo__, adottando la semantica più comune, __un'istanza della tipologia di modello__; ad esempio: considerando la tipologia/famiglia degli alberi di decisione, un modello è _uno specifico albero_.  
 #
-# In base a come si presentano i dati che l’algoritmo di apprendimento usa per allenare il modello, distinguiamo tra apprendimento **supervisionato** e non. 
+# In base a come si presentano i dati che costituiscono il dataset $D$, distinguiamo tra apprendimento **supervisionato** e non. 
 #
 # ### Apprendimento supervisionato
-# Ogni osservazione è rappresentata da una coppia $(x, y)$, dove $x$ è l'istanza del problema e $y$ è la relativa soluzione (o etichetta).  
+# Il dataset è costituito da **esempi**. Ogni esempio è rappresentato da una **coppia $(x, y)$**, dove $x$ è l'istanza del problema (anche chiamata osservazione) e $y$ è la relativa soluzione (o etichetta).  
 # Ad esempio, se $x$ è una foto della nonna da classificare, $y$ sarà la risposta _sì/no_.  
 # Il dataset è quindi un insieme di coppie _istanza-soluzione_: $\{(x_1, y_1), (x_2, y_2), \dots, (x_n, y_n)\}$.  
-# Chiaramente deve esistere una relazione $f$ che leghi istanze e soluzioni, tale che $f(x) = y$. L'obiettivo del modello è proprio approssimare $f$, che prende il nome di _ground truth_. Le predizioni del modello vengono indicate come $\hat{y}$.
+# Chiaramente deve esistere una funzione $f$ che leghi istanze e soluzioni, tale che $f(x) = y$. L'obiettivo del modello è proprio approssimare $f$. Le predizioni del modello vengono indicate come $\hat{y}$. Le $y$ prendono il nome di _ground truth_.  
+# In realtà, non è necessariamente vero che $x$ e $y$ siano in ogni caso legate da una funzione $f$; si tratta di un'assunzione semplificativa che facciamo all'interno di questo notebook. Esistono problemi in cui non è possibile arrivare deterministicamente alla $y$, data la $x$. 
 #
 # ### Apprendimento non supervisionato
-# Ogni osservazione è costituita esclusivamente dall'istanza del problema: $(x)$.  
+# Ogni elemento del dataset è costituito esclusivamente dall'istanza del problema: $(x)$.  
 # Un esempio di apprendimento non supervisionato è il _clustering_, in cui il modello deve raggruppare i dati in insiemi (_cluster_) basati su somiglianze o caratteristiche comuni. L'obiettivo è che le osservazioni all'interno di ciascun gruppo siano più simili tra loro rispetto a quelle di altri gruppi, permettendo di individuare pattern e strutture nascoste nei dati senza l'utilizzo delle etichette.
 #
 # **_Nota_**: il notebook si concentra sul ML supervisionato.
