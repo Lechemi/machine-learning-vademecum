@@ -59,8 +59,8 @@
 
 # + [markdown] jp-MarkdownHeadingCollapsed=true
 # ## Valutare un modello
-# Poiché l'obiettivo è approssimare la relazione di base (_ground truth_) tra istanze e soluzioni, è necessario **valutare la bontà di tale approssimazione**, ossia valutare il modello.  
-# L'idea di base è molto semplice: si forniscono al modello delle osservazioni (coppie $(x, y)$), e per ciascuna si confronta la risposta prodotta dal modello, $\hat{y}$, con la soluzione reale, $y$.  
+# Poiché l'obiettivo è approssimare la funzione che lega istanze e soluzioni, è necessario **valutare la bontà di tale approssimazione**, ossia valutare il modello.  
+# L'idea di base è molto semplice: si forniscono al modello degli esempi (coppie $(x, y)$), e per ciascuno si confronta la risposta prodotta dal modello, $\hat{y}$, con la soluzione reale, $y$.  
 # A partire da questo confronto, è possibile monitorare diverse **metriche** di valutazione delle prestazioni.
 #
 # ### Alcune metriche
@@ -68,33 +68,31 @@
 # Adotteremo la seguente notazione:
 # - $D$ : dataset, composto da esempi del tipo $(x_i, y_i)$,
 # - $n = |D|$,
-# - $f$ : modello; $f(x_i)$ è l'output del modello quando sottoposto all'input (istanza) $x_i\enspace$,
-# - $\mathbb{I}_A$ : <a href="https://it.wikipedia.org/wiki/Funzione_indicatrice">funzione indicatrice</a> dell'insieme $A$.
+# - $m$ : modello; $m(x_i)$ è l'output del modello quando sottoposto all'input (istanza) $x_i\enspace$,
+# - $\mathbb{T}(\cdot)$ : funzione che restituisce $1$ se l'espressione $\cdot$ è vera; $0$ altrimenti.
 #
 # #### MSE
 # L'errore quadratico medio (Mean Squared Error) è tipicamente utilizzato nei problemi di regressione (come quello descritto nel paragrafo successivo):
 # $$
-# \mathrm{MSE}(f;D)= \frac{1}{m}\sum_{i=1}^{m} (f(x_i) - y_i)^2 \enspace.
+# \mathrm{MSE}(m;D)= \frac{1}{n}\sum_{i=1}^{n} (m(x_i) - y_i)^2 \enspace.
 # $$
 #
 # #### Tasso d'errore (_error rate_) e accuratezza (_accuracy_)
 # Sono le due metriche più diffuse nei problemi di classificazione.  
-# Il tasso d'errore indica la proporzione di istanze erroneamente classificate sul totale delle istanze.
+# Il tasso d'errore indica la proporzione di istanze erroneamente classificate sul totale delle istanze:
 # $$
-# \operatorname{E}(f;D)=\frac{1}{m}\sum_{i=1}^{m}\mathbb{I}(f(x_i)\neq y_i)
+# \operatorname{E}(m;D)=\frac{1}{n}\sum_{i=1}^{n}\mathbb{T}(m(x_i)\neq y_i) \enspace.
 # $$
 #
-# L'accuratezza indica la proporzione di istanze correttamente classificate sul totale delle istanze.
+# L'accuratezza indica la proporzione di istanze correttamente classificate sul totale delle istanze:
 # $$
-# \operatorname{acc}(f;D)=\frac{1}{m}\sum_{i=1}^{m}\mathbb{I}(f(x_i)=y_i)
+# \operatorname{acc}(m;D)=\frac{1}{n}\sum_{i=1}^{n}\mathbb{T}(m(x_i)=y_i) \enspace.
 # $$
-# Valgono anche:
+# Vale anche
 # $$
-# \operatorname{acc}(f;D)=1-\operatorname{E}(f;D)
+# \operatorname{acc}(m;D)=1-\operatorname{E}(m;D)
 # $$
-# $$
-# \operatorname{E}(f;D)=1-\operatorname{acc}(f;D)
-# $$
+# e viceversa.
 #
 # #### Precisione (_precision_) e richiamo (_recall_)
 # Nel sottocaso dei problemi di classificazione binaria, si tratta di due metriche molto comuni e più informative rispetto a tasso d'errore o accuratezza.  
