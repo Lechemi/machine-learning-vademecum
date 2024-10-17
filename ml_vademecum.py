@@ -136,13 +136,13 @@
 # La scelta dei dati da utilizzare per valutare le performance del modello è un aspetto a cui prestare attenzione. Intuitivamente, vorremmo utilizzare gli stessi dati che abbiamo usato per allenare il modello, ossia quelli appartenenti al _**train set**_ $S$.
 # Vediamo come mai questa sia in realtà una cattiva idea.
 #
-# Prendiamo in esame un semplice problema di interpolazione. Ogni esempio è costituito da due valori reali, $x$ (l'istanza) e $y$ (l'etichetta) e dunque individua un punto nel piano. I punti neri costituiscono $S$, mentre quelli bianchi corrispondono a dati nuovi, mai visti dal modello, e quindi ancora da etichettare. L'obiettivo è, come sempre, approssimare la ground truth, e questo problema permette di visualizzarlo facilmente. Di fatto, in questo caso, il modello non è altro che una curva, e lo valuteremo in base a quanto si discosta mediamente dai punti del dataset (MSE).
+# Prendiamo in esame un semplice problema di interpolazione. Ogni esempio è costituito da due valori reali, $x$ (l'istanza) e $y$ (l'etichetta) e dunque individua un punto nel piano. Nella figura di seguito, i punti neri costituiscono $S$, mentre quelli bianchi corrispondono a dati nuovi, mai visti dal modello, e quindi ancora da etichettare. L'obiettivo è, come già discusso, approssimare la funzione che lega $x$ e $y$, e questo problema permette di visualizzarlo facilmente. Di fatto, in questo caso, il modello non è altro che una curva, e lo valuteremo in base a quanto si discosta mediamente dai punti del dataset (MSE).
 #
 # <div style="text-align: center;">
 #     <img src="images/regressione.jpeg" alt="Descrizione" width="300" height="200">
 # </div>
 #
-# Chiaramente il modello ideale sarebbe $A$, che interpola bene tutti i punti, sia quelli incontrati in $S$, sia quelli nuovi. Di certo non potremmo dire che $B$ sia un buon modello: si discosta notevolmente dai dati non incontrati. Eppure, se lo valutassimo solo su $T$, performerebbe come $A$ (se non meglio). $B$ soffre del cosiddetto problema di **overfitting**: si è specializzato solo sul train set, non ha colto la relazione sottostante ai dati e dunque non è in grado di generalizzare su dati mai visti.  
+# Chiaramente il modello ideale sarebbe $A$, che interpola bene tutti i punti, sia quelli incontrati in $S$, sia quelli nuovi. Di certo non potremmo dire che $B$ sia un buon modello: si discosta notevolmente dai dati non incontrati in allenamento. Eppure, se lo valutassimo solo su $S$, performerebbe come $A$ (se non meglio). $B$ soffre del cosiddetto problema di **overfitting**: si è specializzato solo sul train set, non ha colto la relazione sottostante ai dati e dunque non è in grado di generalizzare su dati mai visti.  
 # Pertanto, **è fondamentale testare il modello su un _test set_ $T$**, cioè un insieme di dati disgiunto da $S$.
 #
 # Questo non significa che valutare un modello sul train set sia inutile: performance scarse sul train set indicano che il modello utilizzato non è abbastanza espressivo/potente per il dato problema (fenomeno noto come **underfitting**), e dunque costituiscono una prima informazione preziosa. L’importante è riconoscere che performance buone sul train set non implicano qualità del modello.
@@ -152,7 +152,7 @@
 # Presentiamo molto brevemente due tra le numerose tipologie di modello di ML, anche per illustrare più facilmente alcuni concetti più avanti.
 #
 # ### Albero di decisione
-# Si tratta di un albero in cui ogni nodo interno rappresenta una decisione basata su una caratteristica (o attributo) dell'esempio, e le foglie rappresentano le classi o le previsioni finali. Fissata un’altezza massima, l’algoritmo di apprendimento produce, partendo dai dati, un albero di decisione; deve quindi stabilirne la struttura, le condizioni presenti nei nodi interni e le classi nelle foglie.  
+# Si tratta di un albero in cui ogni nodo interno rappresenta una decisione basata su una caratteristica (o attributo) dell'esempio, e le foglie rappresentano le classi o le previsioni finali. L’algoritmo di apprendimento produce, partendo dai dati, un albero di decisione; deve quindi stabilirne la struttura, le condizioni presenti nei nodi interni e le classi nelle foglie.  
 # <div style="text-align: center;">
 #     <img src="images/decision_tree.png" alt="Descrizione" width="400" height="300">
 # </div>
@@ -162,7 +162,7 @@
 # Per classificare una nuova istanza, rappresentata da un nuovo punto, KNN calcola la distanza tra quest'ultimo e tutti i punti del dataset (solitamente utilizzando la distanza euclidea).
 # Vengono poi selezionati i $k$ punti più vicini (da qui "$k$-nearest neighbors").
 # La classe del nuovo punto viene determinata dalla classe più frequente tra i $k$ vicini selezionati nel caso della classificazione, oppure dalla media dei valori nel caso della regressione.  
-# Nel caso di KNN non c’è una vera e propria fase di allenamento (vedremo poi nel paragrafo dedicato a parametri e iperparametri); semplicemente i dati vengono memorizzati.
+# Nel caso di KNN non c’è una vera e propria fase di allenamento (vedremo poi nel paragrafo dedicato a parametri e iperparametri); semplicemente i dati vengono collocati nello spazio.
 # <div style="text-align: center;">
 #     <img src="images/knn.png" alt="Descrizione" width="300" height="200">
 # </div>
@@ -170,19 +170,20 @@
 # ## Parametri e iperparametri
 # I parametri sono le caratteristiche del modello che vengono **definite nella fase di apprendimento**. Gli iperparametri, invece, sono le caratteristiche del modello che devono essere fissate __*prima* della fase di apprendimento__.
 #
-# Per gli alberi di decisione, ha senso stabilire come prima cosa un’altezza massima, che costituisce quindi un iperparametro. Fissata quella, l’allenamento stabilisce la topologia, le decisioni presenti nei nodi interni e le classi delle foglie; che sono i parametri. **Lo scopo dell'allenamento è trovare i valori ottimali per i parametri del modello**.  
-# Prima dell'allenamento, i parametri hanno valori di default o addirittura casuali; al termine dell'allenamento, i parametri hanno i valori ottimali, ossia quelli che consentono al modello di compiere predizioni accurate.  
-# Nel caso di KNN, non c’è una vera e propria fase di apprendimento; di fatto non ci sono parametri da stabilire. C’è solo un iperparametro, ossia $k$.
+# Per gli alberi di decisione, ha senso stabilire, per esempio, un’altezza massima, che costituisce quindi un iperparametro. Fissata quella, l’allenamento stabilisce la topologia, le decisioni presenti nei nodi interni e le classi delle foglie; che sono i parametri. **Lo scopo dell'allenamento è trovare i valori ottimali per i parametri del modello**.  
+# Prima dell'allenamento, i parametri hanno valori di default, casuali o comunque subottimali; al termine dell'allenamento, i parametri hanno i valori ottimali, ossia quelli che consentono al modello di compiere predizioni accurate (almeno questo è quello che ci si aspetta).  
+# Nel caso di KNN, non c’è una vera e propria fase di apprendimento; di fatto non ci sono parametri da stabilire. C’è solo un iperparametro, ossia $k$ (non è esattamente l'unico, ma semplifichiamo).
 #
-# Ma se l’algoritmo di apprendimento trova i parametri, come si trovano gli iperparametri?
+# Se l’algoritmo di apprendimento trova i parametri, come si trovano gli iperparametri?
 #
 # ### Tuning degli iperparametri
 # In questa sezione prendiamo come riferimento KNN, che ha un solo iperparametro: $k$. Sappiamo che non c’è un vero e proprio allenamento, ma lo includeremo tra le fasi, generalizzando (si può pensare ad una fase di “collocazione dei dati nello spazio”).
 #
 # Non c’è un modo particolarmente furbo di trovare il valore ottimale di $k$. La cosa migliore da fare è anche la più intuitiva: stabilire un insieme di $n$ possibili valori per $k$ e lanciare un algoritmo di apprendimento per ciascuno di questi valori, generando così $n$ modelli allenati sullo stesso train set $S$. Ciascun modello viene poi valutato e si sceglie quello con la performance migliore.  
-# Come già discusso [qua](#Valutare-un-modello), non possiamo misurare le performance limitandoci al $S$. Dunque, per scegliere il modello migliore tra gli $n$ generati, ricorriamo ad un cosiddetto **validation set** $V$, disgiunto da $S$. Denotiamo come $k^*$ l'iperparametro del modello che performa meglio.  
-# Viene poi generato un nuovo modello $m$ avente $k = k^*$, ma allenandolo sull'unione $S \cup V$. Chiaramente più dati si danno in pasto al modello, meglio performerà.  
-# Infine, si utilizza un apposito test set $T$ per valutare le performance di $m$. Se sono soddisfacenti, si fa un altro “giro” di allenamento, questa volta su $S \cup V \cup T$.
+# Come già discusso [qua](#Valutare-un-modello), non possiamo misurare le performance limitandoci a $S$. Dunque, per scegliere il modello migliore tra gli $n$ generati, ricorriamo ad un cosiddetto **validation set** $V$, disgiunto da $S$. Denotiamo come $k^*$ l'iperparametro del modello che performa meglio.  
+# Viene poi generato un nuovo modello $m$ avente $k = k^*$, ma allenandolo sull'unione $S \cup V$.  
+# Infine, si utilizza un apposito test set $T$ per valutare le performance di $m$. Se sono soddisfacenti, si fa un altro “giro” di allenamento, questa volta su $S \cup V \cup T$.  
+# Chiaramente, l'assunzione di fondo, generalmente corretta, è che ri-allenando un modello con più dati le sue performance migliorino (o che sicuramente non peggiorino). L'operazione di _ri-allenamento_ prende il nome di **_refit_**.  
 #
 # Se si hanno due o più iperparametri, si procede analogamente, testando ogni loro possibile combinazione e scegliendo quella che dà luogo alla performance migliore su $V$. Chiaramente le risorse computazionali richieste aumentano non poco.
 
@@ -195,13 +196,13 @@
 # Un dataset non è altro che un campione della popolazione, dunque deve rifletterne la distribuzione. È importante che tale distribuzione sia preservata anche in qualsiasi altro sottoinsieme di $D$ ($S$, $T$ e $V$). Questo lo scopo delle tecniche di _stratified sampling_ (campionamento stratificato).  
 # Se $S$ e $T$ avessero distribuzioni diverse, vorrebbe dire testare il modello su una popolazione distribuita diversamente rispetto a quella su cui si è allenato.
 #
-# Prendiamo come esempio un problema di classificazione binaria. Supponiamo di avere $D$ contenente 500 esempi positivi e 500 esempi negativi, che vogliamo suddividere facendo holdout (link al paragrafo) in un train set $S$ con il 70% degli esempi e un test set $T$ con il 30% degli esempi. In tal caso, un metodo di campionamento stratificato garantirà che $S$ contenga 350 esempi positivi e 350 esempi negativi, e che $T$ contenga 150 esempi positivi e 150 esempi negativi.
+# Prendiamo come esempio un problema di classificazione binaria. Supponiamo di avere $D$ contenente 500 esempi positivi e 500 esempi negativi, che vogliamo suddividere facendo holdout in un train set $S$ con il 70% degli esempi e un test set $T$ con il 30% degli esempi. In tal caso, un metodo di campionamento stratificato garantirà che $S$ contenga 350 esempi positivi e 350 esempi negativi, e che $T$ contenga 150 esempi positivi e 150 esempi negativi.
 #
 # Da qua in poi assumeremo sempre che qualsiasi sottoinsieme ricavato da $D$ sia correttamente stratificato.
 
 # ### Holdout
 #
-# La metodologia Hold Out consiste nel suddividere $ D $ in nel train set $ S $ e nel test set $ T $, in modo tale che $ D = T \cup S $ e $ T \cap S = \emptyset $.
+# La metodologia holdout consiste nel suddividere $ D $ in nel train set $ S $ e nel test set $ T $, in modo tale che $ D = T \cup S $ e $ T \cap S = \emptyset $.
 # <div style="text-align: center;">
 #     <img src="images/holdout.webp" alt="Descrizione" width="300" height="200">
 # </div>
@@ -359,7 +360,7 @@ accuracy_score(y_test, gs.predict(X_test))
 model = KNeighborsClassifier(gs.best_estimator_.n_neighbors)
 model.fit(iris['data'], iris['target'])
 
-# ### Approcio cv-cv
+# ### Approcio cv annidato (cv-cv)
 #
 # Utilizziamo il metodo `cross_val_score`, che restituisce un array di valutazioni (`cv_scores`); una per ciascuna iterazione di cross-validation. Passiamo come parametri:
 # - il modello da allenare e valutare ad ogni iterazione. Da notare che forniamo un oggetto `GridSearchCV`, il cui metodo `fit` svolge il tuning degli iperparametri tramite cross-validation (vedi paragrafo precedente)
