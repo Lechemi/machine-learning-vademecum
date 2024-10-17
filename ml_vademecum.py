@@ -65,7 +65,7 @@
 #
 # ### Alcune metriche
 # Presentiamo alcune delle metriche che vengono comunemente impiegate per la valutazione delle prestazioni.  
-# Adotteremo la seguente notazione:
+# Adotteremo la seguente notazione.
 # - $D$ : dataset, composto da esempi del tipo $(x_i, y_i)$,
 # - $n = |D|$,
 # - $m$ : modello; $m(x_i)$ è l'output del modello quando sottoposto all'input (istanza) $x_i\enspace$,
@@ -78,7 +78,7 @@
 # $$
 #
 # #### Tasso d'errore (_error rate_) e accuratezza (_accuracy_)
-# Sono le due metriche più diffuse nei problemi di classificazione.  
+# Sono le due metriche più diffuse nei problemi di classificazione, in cui l'obiettivo è assegnare a ciascuna osservazione una classe, scelta da un insieme finito.  
 # Il tasso d'errore indica la proporzione di istanze erroneamente classificate sul totale delle istanze:
 # $$
 # \operatorname{E}(m;D)=\frac{1}{n}\sum_{i=1}^{n}\mathbb{T}(m(x_i)\neq y_i) \enspace.
@@ -94,19 +94,28 @@
 # $$
 # e viceversa.
 #
-# #### Precisione (_precision_) e richiamo (_recall_)
-# Nel sottocaso dei problemi di classificazione binaria, si tratta di due metriche molto comuni e più informative rispetto a tasso d'errore o accuratezza.  
-# La precisione indica, in rapporto, quanti dei campioni previsti come positivi sono effettivamente positivi.
+# #### Precisione e richiamo
+# Si tratta di metriche specifiche dei problemi di calssificazione binaria. Questi rappresentano un particolare sottocaso dei problemi di classificazione, in cui si hanno solo due possibili classi, che solitamente si indicano come **positiva** e **negativa**. Dunque, le predizioni del modello possono a loro volta rientrare in quattro possibili classi, presentate di seguito.
+# - Veri positivi ($\text{TP}$): osservazioni classificate correttamente come positive.
+# - Falsi positivi ($\text{FP}$): osservazioni classificate erroneamente come positive.
+# - Veri negativi ($\text{TN}$): osservazioni classificate correttamente come negative.
+# - Falsi negativi ($\text{FN}$): osservazioni classificate erroneamente come negative.
+#
+# La **precisione** (_precision_) indica, in rapporto, quanti dei campioni previsti come positivi sono effettivamente positivi:
 # $$
-# \frac{\text{Veri positivi (TP)}}{\text{Veri positivi (TP)} + \text{Falsi positivi (FP)}}
+# \text{P} = \frac{\text{TP}}{\text{TP} + \text{FP}} \enspace.
 # $$
 # La si può vedere come una misura dell'accuratezza delle previsioni positive.
 #
-# Il richiamo indica la proporzione di esempi positivi reali che sono stati correttamente identificati dal modello.
+# Il **richiamo** (_recall_) indica la proporzione di veri positivi sul totale dei positivi:
 # $$
-# \frac{\text{Veri positivi (TP)}}{\text{Veri positivi (TP)} + \text{Falsi negativi (FN)}}
+# \text{R} = \frac{\text{TP}}{\text{TP} + \text{FN}} \enspace.
 # $$
-# Lo si può vedere come una misura della capacità del modello di trovare tutti i positivi.  
+# Lo si può vedere come una misura della capacità del modello di trovare tutti i positivi. Il richiamo prende anche il nome di **sensibilità**.  
+# Analogamente, si può tenere traccia della proporzione di veri negativi sul totale dei negativi, proporzione che prende il nome di **specificità**:
+# $$
+# \frac{\text{TN}}{\text{TN} + \text{FP}} \enspace.
+# $$
 #
 # Importante notare come precisione e richiamo siano in mutua "competizione". In generale, il richiamo è spesso basso quando la precisione è alta, e la precisione è spesso bassa quando il richiamo è alto.  
 # Infatti, se volessimo facilmente portare a 1 il richiamo del nostro modello, basterebbe far sì che questo classifichi positivamente ogni istanza, portando logicamente a 0 i falsi negativi. Ma questo andrebbe a scapito della precisione, per via dei numerosi ed inevitabili falsi positivi. Al contrario, classificando come positive solo le istanze di cui si è quasi certi, dunque massimizzando la precisione, si genererebbero parecchi falsi negativi che inciderebbero negativamente sul richiamo.  
@@ -114,6 +123,14 @@
 # Ecco due esempi significativi:
 # - In un sistema di filtraggio dello spam, è fondamentale che le email classificate come "spam" siano effettivamente spam. Un'alta precisione è importante perché non vogliamo che email legittime (non spam) vengano erroneamente contrassegnate come spam (falsi positivi). In questo caso, se il modello ha bassa precisione, potremmo perdere messaggi importanti.
 # - In un sistema che rileva una malattia pericolosa, il richiamo è più importante perché è cruciale individuare tutti i pazienti malati, anche a costo di avere alcuni falsi positivi. Se il modello ha un basso richiamo, rischieremmo di non diagnosticare correttamente alcune persone malate (falsi negativi).
+#
+# ##### $\text{F1}$
+# Se volessimo combinare precisione e richiamo in un'unica metrica, potremmo pensare alla media aritmetica. Tuttavia, questa terrebbe poco conto della competizione tra le due sopra. Ad esempio, uno scenario in cui $(\text{P}=0, \text{R}=1)$ sarebbe valutato esattamente come uno in cui $(\text{P}=0.5, \text{R}=0.5)$, nonostante quest'ultimo sia più auspicabile rispetto al primo.  
+# Per questo si usa la **media armonica** (che in questo contesto prende il nome di $\text{F1}$):
+# $$
+# \text{F1} = \frac{2 \times \text{P} \times \text{R}}{\text{P} + \text{R}} \enspace.
+# $$
+# La media armonica tiene maggiormente conto della differenza tra precisione e richiamo: all'allontanarsi dei due valori, la media armonica precipita molto rapidamente.
 #
 # ### Con quali dati?
 # La scelta dei dati da utilizzare per valutare le performance del modello è un aspetto a cui prestare attenzione. Intuitivamente, vorremmo utilizzare gli stessi dati che abbiamo usato per allenare il modello, ossia quelli appartenenti al _**train set**_ $S$.
