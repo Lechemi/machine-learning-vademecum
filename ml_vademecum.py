@@ -36,10 +36,13 @@
 # Per alcuni problemi, formulare una soluzione è del tutto fattibile (se non facile), ma questa ha un **costo computazionale proibitivo**.  
 # Nel <a href="https://it.wikipedia.org/wiki/Problema_dello_zaino">problema dello zaino</a>, la soluzione _brute force_ è concettualmente semplice: basta considerare tutte le possibili combinazioni di oggetti e scegliere quella con il valore massimo senza superare il peso limite. Tuttavia, questa strategia diventa impraticabile al crescere del numero di oggetti ($n$): ad esempio, con $n=50$, si arriva a oltre un milione di miliardi di combinazioni da esaminare ($2^{50}$) .
 #
-# In queste due situazioni ricorriamo a un modello di ML, nell'ottica che le sue risposte approssimino bene quelle esatte, se il problema ne prevede.
+# In queste due situazioni ricorriamo a un modello di ML, nell'ottica che le sue risposte approssimino bene quelle esatte, se il problema ne prevede. Ovviamente, anche l'approccio ML può fallire; non è garantito che si arrivi sempre a un tale modello.
 
-# ## Modalità di apprendimento
-# In base a come si presentano i dati che l’algoritmo di apprendimento usa per produrre il modello, distinguiamo tra apprendimento **supervisionato** e non.
+# ## Algoritmo di apprendimento
+# Un algoritmo di apprendimento non è altro che una funzione $l:(m, D) \rightarrow m'$ che allena il modello $m$ su il dataset $D$, producendo un modello allenato $m'$.  
+# NB: __con "modello" intendiamo__, adottando la semantica più comune, __un'istanza della tipologia di modello__; ad esempio: considerando la tipologia/famiglia degli alberi di decisione, un modello è _uno specifico albero_.  
+#
+# In base a come si presentano i dati che l’algoritmo di apprendimento usa per allenare il modello, distinguiamo tra apprendimento **supervisionato** e non. 
 #
 # ### Apprendimento supervisionato
 # Ogni osservazione è rappresentata da una coppia $(x, y)$, dove $x$ è l'istanza del problema e $y$ è la relativa soluzione (o etichetta).  
@@ -63,7 +66,7 @@
 # Presentiamo alcune delle metriche che vengono comunemente impiegate per la valutazione delle prestazioni.  
 # Adotteremo la seguente notazione:
 # - $D$ : dataset, composto da esempi del tipo $(x_i, y_i)$,
-# - $m = |D|$,
+# - $n = |D|$,
 # - $f$ : modello; $f(x_i)$ è l'output del modello quando sottoposto all'input (istanza) $x_i\enspace$,
 # - $\mathbb{I}_A$ : <a href="https://it.wikipedia.org/wiki/Funzione_indicatrice">funzione indicatrice</a> dell'insieme $A$.
 #
