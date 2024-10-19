@@ -33,3 +33,9 @@ jupytext --sync notebook.ipynb
 ```
 
 [Qui](https://jupytext.readthedocs.io/en/latest/using-cli.html) si trova una serie di comandi utili, tra cui quelli presentati.
+
+##  Licenza
+Questo progetto utilizza materiali sotto la licenza MIT.
+
+Copyright (c) 2019 Amirsina Torfi
+Licensed under the MIT License.

@@ -139,7 +139,12 @@
 # Prendiamo in esame un semplice problema di interpolazione. Ogni esempio è costituito da due valori reali, $x$ (l'istanza) e $y$ (l'etichetta) e dunque individua un punto nel piano. Nella figura di seguito, i punti neri costituiscono $S$, mentre quelli bianchi corrispondono a dati nuovi, mai visti dal modello, e quindi ancora da etichettare. L'obiettivo è, come già discusso, approssimare la funzione che lega $x$ e $y$, e questo problema permette di visualizzarlo facilmente. Di fatto, in questo caso, il modello non è altro che una curva, e lo valuteremo in base a quanto si discosta mediamente dai punti del dataset (MSE).
 #
 # <div style="text-align: center;">
-#     <img src="images/regressione.jpeg" alt="Descrizione" width="300" height="200">
+#     <img src="images/regressione.png" alt="Descrizione" width="300" height="200">
+#     <p style="margin-top: 10px;">
+#         Immagine: "Overfitted Data" di M. A. de Rojas, 
+#         <a href="https://commons.wikimedia.org/wiki/File:Overfitted_Data.png">Wikimedia Commons</a>, 
+#         usata sotto <a href="https://creativecommons.org/licenses/by-sa/3.0/">Licenza CC BY-SA 3.0</a>.
+#     </p>
 # </div>
 #
 # Chiaramente il modello ideale sarebbe $A$, che interpola bene tutti i punti, sia quelli incontrati in $S$, sia quelli nuovi. Di certo non potremmo dire che $B$ sia un buon modello: si discosta notevolmente dai dati non incontrati in allenamento. Eppure, se lo valutassimo solo su $S$, performerebbe come $A$ (se non meglio). $B$ soffre del cosiddetto problema di **overfitting**: si è specializzato solo sul train set, non ha colto la relazione sottostante ai dati e dunque non è in grado di generalizzare su dati mai visti.  
@@ -155,6 +160,11 @@
 # Si tratta di un albero in cui ogni nodo interno rappresenta una decisione basata su una caratteristica (o attributo) dell'esempio, e le foglie rappresentano le classi o le previsioni finali. L’algoritmo di apprendimento produce, partendo dai dati, un albero di decisione; deve quindi stabilirne la struttura, le condizioni presenti nei nodi interni e le classi nelle foglie.  
 # <div style="text-align: center;">
 #     <img src="images/decision_tree.png" alt="Descrizione" width="400" height="300">
+#     <p style="margin-top: 10px;">
+#         Immagine: "Decision Tree Explain" di Cnile, 
+#         <a href="https://commons.wikimedia.org/wiki/File:Decision_Tree_Explain.png">Wikimedia Commons</a>, 
+#         usata sotto <a href="https://creativecommons.org/licenses/by-sa/3.0/">Licenza CC BY-SA 3.0</a>.
+#     </p>
 # </div>
 #
 # ### KNN
@@ -164,7 +174,12 @@
 # La classe del nuovo punto viene determinata dalla classe più frequente tra i $k$ vicini selezionati nel caso della classificazione, oppure dalla media dei valori nel caso della regressione.  
 # Nel caso di KNN non c’è una vera e propria fase di allenamento (vedremo poi nel paragrafo dedicato a parametri e iperparametri); semplicemente i dati vengono collocati nello spazio.
 # <div style="text-align: center;">
-#     <img src="images/knn.png" alt="Descrizione" width="300" height="200">
+#     <img src="images/knn.png" alt="Classificazione KNN" width="300" height="200">
+#     <p style="margin-top: 10px;">
+#         Immagine: "KnnClassification" di Jarek Tuszynski, 
+#         <a href="https://commons.wikimedia.org/wiki/File:KnnClassification.svg">Wikimedia Commons</a>, 
+#         usata sotto <a href="https://creativecommons.org/licenses/by-sa/3.0/">Licenza CC BY-SA 3.0</a>.
+#     </p>
 # </div>
 
 # ## Parametri e iperparametri
@@ -219,7 +234,7 @@
 # La metodologia cross-validation prevede di suddividere $ D $ in $ k $ sottoinsiemi di cardinalità uguale o simile, tali che $ D = \bigcup_{i=1}^{k} D_i $ e $ \forall i, j \in \{1, \dots, k\}, D_i \cap D_j = \emptyset $, con $ i \neq j $. In altre parole, i $k$ sottoinsiemi costituiscono una partizione di $D$.  
 # Vengono svolte $ k $ iterazioni; a ogni iterazione, un singolo insieme $ D_i $ non ancora utilizzato come test set, viene scelto come tale, mentre il training set viene composto dall'unione di tutti gli altri sottoinsiemi.  
 # <div style="text-align: center;">
-#     <img src="images/crossvalidation.png" alt="Descrizione" width="500" height="500">
+#     <img src="images/crossvalidation.png" alt="Descrizione" width="300" height="200">
 # </div>
 # Finite le iterazioni, disponiamo di $ k $ valutazioni, da cui otteniamo un'unica valutazione complessiva calcolando la media.  
 # Poiché la stabilità e l'accuratezza della cross-validation dipendono in gran parte dal valore di $ k $, essa è anche conosciuta come k-fold cross-validation. Il valore di $ k $ più comunemente utilizzato è 10, e il metodo corrispondente è chiamato 10-fold cross-validation.
@@ -233,10 +248,6 @@
 # Finora abbiamo visto come si possono ricavare $S$ e $T$ da $D$, ma non abbiamo discusso il caso in cui si debba anche fare tuning degli iperparametri, ricorrendo quindi al validation set nella modalità descritta nel paragrafo appena citato.   
 # In questo caso, le suddivisioni vengono annidate: abbiamo una suddivisione esterna, da $D$ a $S$ e $T$, e una interna, da $S$ a $S$ ridotto e $V$.  
 # Le due suddivisioni possono essere eseguite con lo stesso metodo (ad esempio holdout-holdout), oppure con metodi differenti (ad esempio holdout-cv). L'immagine visualizza una suddivisione annidata holdout-cv.
-#
-# <div style="text-align: center;">
-#     <img src="images/tuning.png" alt="Descrizione" width="400" height="400">
-# </div>
 #
 # Merita particolare attenzione il caso in cui si scelga di utilizzare la cross-validation per la suddivisione esterna. A ogni iterazione esterna corrisponde un train set diverso, dunque un modello allenato diversamente, i cui iperparametri ottimali possono quindi differire da quelli dei modelli relativi alle altre iterazioni esterne. Ogni iterazione esterna può potenzialmente produrre un modello "unico" nei suoi iperparametri. In questo caso, possiamo scegliere uno qualsiasi dei modelli addestrati.
 
